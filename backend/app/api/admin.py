@@ -94,6 +94,37 @@ async def list_users(
     return {"users": [UserResponse.model_validate(u) for u in users], "total": total}
 
 
+@router.get("/customers/lookup")
+async def lookup_customer(
+    mobile: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Lookup customer details and vehicles by mobile number"""
+    customer = db.query(User).filter(
+        User.mobile == mobile,
+        User.role == UserRole.CUSTOMER
+    ).first()
+    
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    vehicles = db.query(Vehicle).filter(Vehicle.owner_id == customer.id).all()
+    
+    return {
+        "customer": UserResponse.model_validate(customer),
+        "vehicles": [
+            {
+                "id": str(v.id),
+                "plate_number": v.plate_number,
+                "make": v.make,
+                "model": v.model,
+                "year": v.year
+            } for v in vehicles
+        ]
+    }
+
+
 @router.post("/staff", response_model=UserResponse)
 async def create_staff(
     data: StaffCreate,

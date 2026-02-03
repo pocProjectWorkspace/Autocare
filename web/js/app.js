@@ -766,6 +766,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check auth on load
     checkAuth();
+
+    // Customer lookup on mobile input
+    let lookupTimeout;
+    const mobileInput = document.getElementById('job-customer-mobile');
+    if (mobileInput) {
+        mobileInput.addEventListener('input', (e) => {
+            const mobile = e.target.value;
+            const nameInput = document.getElementById('job-customer-name');
+            const vehicleSelect = document.getElementById('job-vehicle');
+
+            // Clear previous data while typing
+            nameInput.value = '';
+            vehicleSelect.innerHTML = '<option value="">Select Vehicle</option>';
+
+            clearTimeout(lookupTimeout);
+            if (mobile.length >= 10) {
+                lookupTimeout = setTimeout(async () => {
+                    try {
+                        const data = await api.get(`/admin/customers/lookup?mobile=${encodeURIComponent(mobile)}`);
+                        if (data && data.customer) {
+                            nameInput.value = data.customer.full_name;
+
+                            if (data.vehicles && data.vehicles.length > 0) {
+                                vehicleSelect.innerHTML = '<option value="">Select Vehicle</option>' +
+                                    data.vehicles.map(v => `<option value="${v.id}">${v.plate_number} (${v.make} ${v.model})</option>`).join('');
+                            } else {
+                                vehicleSelect.innerHTML = '<option value="">No vehicles found</option>';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Customer not found');
+                    }
+                }, 500);
+            }
+        });
+    }
 });
 
 // Make viewJob global

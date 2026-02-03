@@ -172,6 +172,20 @@ def seed_database():
         )
         
         db.add(vehicle)
+        
+        # Create vehicle for test customer
+        test_vehicle = Vehicle(
+            id=uuid.uuid4(),
+            owner_id=test_customer.id,
+            plate_number="DXB 789",
+            make="Nissan",
+            model="Patrol",
+            year=2023,
+            color="Black",
+            vin="V1234567890",
+            mulkiya_number="MK-789012"
+        )
+        db.add(test_vehicle)
         db.flush()
         
         # Create sample job card
