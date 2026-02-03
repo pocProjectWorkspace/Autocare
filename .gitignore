@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+*.db
+*.sqlite3
+
+# Node / Web / Mobile
+node_modules/
+dist/
+build/
+.expo/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Docker
+.docker/
+
+# Backend specific
+backend/autocare.db
+backend/static/uploads/*
+!backend/static/uploads/.gitkeep
+
+# Mobile specific
+mobile/ios/
+mobile/android/
+mobile/dist/

@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoCare - Service Center Dashboard</title>
+  <meta name="description"
+    content="AutoCare Service Center Management Dashboard - Manage job cards, estimates, parts, and more.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+  <div id="app">
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="auth-container">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <span class="logo-icon">🚗</span>
+          <h1>AutoCare</h1>
+          <p>Service Center Dashboard</p>
+        </div>
+
+        <form id="login-form" class="auth-form">
+          <div class="form-group">
+            <label for="mobile">Mobile Number</label>
+            <input type="tel" id="mobile" placeholder="+971 50 123 4567" required>
+          </div>
+
+          <div id="otp-group" class="form-group hidden">
+            <label for="otp">Enter OTP</label>
+            <div class="otp-inputs">
+              <input type="text" class="otp-input" maxlength="1" data-index="0">
+              <input type="text" class="otp-input" maxlength="1" data-index="1">
+              <input type="text" class="otp-input" maxlength="1" data-index="2">
+              <input type="text" class="otp-input" maxlength="1" data-index="3">
+              <input type="text" class="otp-input" maxlength="1" data-index="4">
+              <input type="text" class="otp-input" maxlength="1" data-index="5">
+            </div>
+          </div>
+
+          <button type="submit" id="auth-btn" class="btn btn-primary btn-block">
+            <span>Get OTP</span>
+          </button>
+
+          <p id="auth-error" class="error-text hidden"></p>
+          <p id="otp-display" class="otp-display hidden"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="dashboard hidden">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <span class="logo-icon">🚗</span>
+          <span class="logo-text">AutoCare</span>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="#" class="nav-item active" data-page="overview">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Overview</span>
+          </a>
+          <a href="#" class="nav-item" data-page="jobs">
+            <i data-lucide="clipboard-list"></i>
+            <span>Job Cards</span>
+          </a>
+          <a href="#" class="nav-item" data-page="customers">
+            <i data-lucide="users"></i>
+            <span>Customers</span>
+          </a>
+          <a href="#" class="nav-item" data-page="vehicles">
+            <i data-lucide="car"></i>
+            <span>Vehicles</span>
+          </a>
+          <a href="#" class="nav-item" data-page="rfq">
+            <i data-lucide="file-text"></i>
+            <span>RFQ & Quotes</span>
+          </a>
+          <a href="#" class="nav-item" data-page="payments">
+            <i data-lucide="credit-card"></i>
+            <span>Payments</span>
+          </a>
+          <a href="#" class="nav-item" data-page="reports">
+            <i data-lucide="bar-chart-3"></i>
+            <span>Reports</span>
+          </a>
+          <a href="#" class="nav-item" data-page="settings">
+            <i data-lucide="settings"></i>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <div class="user-avatar" id="user-avatar">A</div>
+            <div class="user-details">
+              <span class="user-name" id="user-name">Admin User</span>
+              <span class="user-role" id="user-role">Administrator</span>
+            </div>
+          </div>
+          <button class="btn-icon" id="logout-btn" title="Logout">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Header -->
+        <header class="content-header">
+          <div class="header-left">
+            <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn">
+              <i data-lucide="menu"></i>
+            </button>
+            <h1 id="page-title">Dashboard Overview</h1>
+          </div>
+          <div class="header-right">
+            <div class="search-box">
+              <i data-lucide="search"></i>
+              <input type="text" placeholder="Search jobs, customers...">
+            </div>
+            <button class="btn-icon notification-btn">
+              <i data-lucide="bell"></i>
+              <span class="notification-badge">3</span>
+            </button>
+            <button class="btn btn-primary" id="new-job-btn">
+              <i data-lucide="plus"></i>
+              <span>New Job</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="content-body" id="content-body">
+          <!-- Overview Page -->
+          <div id="page-overview" class="page active">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon pending">
+                  <i data-lucide="clock"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="stat-pending">0</span>
+                  <span class="stat-label">Pending Jobs</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon progress">
+                  <i data-lucide="settings"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="stat-progress">0</span>
+                  <span class="stat-label">In Progress</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon completed">
+                  <i data-lucide="check-circle"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="stat-completed">0</span>
+                  <span class="stat-label">Completed Today</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon revenue">
+                  <i data-lucide="trending-up"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="stat-revenue">AED 0</span>
+                  <span class="stat-label">Today's Revenue</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+              <div class="chart-card">
+                <div class="card-header">
+                  <h3>Jobs by Status</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="status-chart"></canvas>
+                </div>
+              </div>
+              <div class="chart-card">
+                <div class="card-header">
+                  <h3>Revenue Trend</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="revenue-chart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Jobs -->
+            <div class="table-card">
+              <div class="card-header">
+                <h3>Recent Job Cards</h3>
+                <a href="#" class="link" data-page="jobs">View All</a>
+              </div>
+              <div class="card-body">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Job #</th>
+                      <th>Customer</th>
+                      <th>Vehicle</th>
+                      <th>Service</th>
+                      <th>Status</th>
+                      <th>Amount</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-jobs-table">
+                    <tr>
+                      <td colspan="7" class="loading-cell">Loading...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Jobs Page -->
+          <div id="page-jobs" class="page">
+            <div class="page-header">
+              <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="pending">Pending</button>
+                <button class="filter-tab" data-filter="in_progress">In Progress</button>
+                <button class="filter-tab" data-filter="awaiting_approval">Awaiting Approval</button>
+                <button class="filter-tab" data-filter="completed">Completed</button>
+              </div>
+            </div>
+
+            <div class="table-card">
+              <div class="card-body">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Job #</th>
+                      <th>Customer</th>
+                      <th>Vehicle</th>
+                      <th>Service Type</th>
+                      <th>Status</th>
+                      <th>Created</th>
+                      <th>Amount</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="jobs-table">
+                    <tr>
+                      <td colspan="8" class="loading-cell">Loading...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="card-footer">
+                <div class="pagination">
+                  <button class="btn-icon" id="prev-page" disabled>
+                    <i data-lucide="chevron-left"></i>
+                  </button>
+                  <span id="page-info">Page 1 of 1</span>
+                  <button class="btn-icon" id="next-page" disabled>
+                    <i data-lucide="chevron-right"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customers Page -->
+          <div id="page-customers" class="page">
+            <div class="table-card">
+              <div class="card-header">
+                <h3>All Customers</h3>
+              </div>
+              <div class="card-body">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Mobile</th>
+                      <th>Email</th>
+                      <th>Vehicles</th>
+                      <th>Total Jobs</th>
+                      <th>Joined</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="customers-table">
+                    <tr>
+                      <td colspan="7" class="loading-cell">Loading...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- RFQ Page -->
+          <div id="page-rfq" class="page">
+            <div class="table-card">
+              <div class="card-header">
+                <h3>RFQ & Vendor Quotes</h3>
+              </div>
+              <div class="card-body">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>RFQ #</th>
+                      <th>Job #</th>
+                      <th>Parts</th>
+                      <th>Vendors</th>
+                      <th>Quotes</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rfq-table">
+                    <tr>
+                      <td colspan="7" class="loading-cell">No RFQs found</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payments Page -->
+          <div id="page-payments" class="page">
+            <div class="stats-grid stats-3">
+              <div class="stat-card">
+                <div class="stat-icon revenue">
+                  <i data-lucide="wallet"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="today-collection">AED 0</span>
+                  <span class="stat-label">Today's Collection</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon pending">
+                  <i data-lucide="hourglass"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="pending-payments">0</span>
+                  <span class="stat-label">Pending Payments</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon completed">
+                  <i data-lucide="receipt"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="month-revenue">AED 0</span>
+                  <span class="stat-label">This Month</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-card">
+              <div class="card-header">
+                <h3>Recent Payments</h3>
+              </div>
+              <div class="card-body">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Payment ID</th>
+                      <th>Job #</th>
+                      <th>Customer</th>
+                      <th>Amount</th>
+                      <th>Method</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="payments-table">
+                    <tr>
+                      <td colspan="7" class="loading-cell">Loading...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reports Page -->
+          <div id="page-reports" class="page">
+            <div class="page-header">
+              <div class="filter-tabs">
+                <button class="filter-tab active" data-period="today">Today</button>
+                <button class="filter-tab" data-period="week">This Week</button>
+                <button class="filter-tab" data-period="month">This Month</button>
+                <button class="filter-tab" data-period="year">This Year</button>
+              </div>
+              <button class="btn btn-secondary" id="export-report-btn">
+                <i data-lucide="download"></i>
+                <span>Export</span>
+              </button>
+            </div>
+
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon revenue">
+                  <i data-lucide="banknote"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="report-revenue">AED 0</span>
+                  <span class="stat-label">Total Revenue</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon progress">
+                  <i data-lucide="car"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="report-jobs">0</span>
+                  <span class="stat-label">Total Jobs</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon completed">
+                  <i data-lucide="user-check"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="report-customers">0</span>
+                  <span class="stat-label">Customers</span>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon pending">
+                  <i data-lucide="calculator"></i>
+                </div>
+                <div class="stat-info">
+                  <span class="stat-value" id="report-avg-ticket">AED 0</span>
+                  <span class="stat-label">Avg Ticket</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="charts-row">
+              <div class="chart-card">
+                <div class="card-header">
+                  <h3>Service Type Breakdown</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="service-type-chart"></canvas>
+                </div>
+              </div>
+              <div class="chart-card">
+                <div class="card-header">
+                  <h3>Branch Performance</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="branch-chart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-card">
+              <div class="card-header">
+                <h3>Top Customers</h3>
+              </div>
+              <div class="card-body">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Customer</th>
+                      <th>Total Spent</th>
+                      <th>Jobs</th>
+                      <th>Avg Value</th>
+                    </tr>
+                  </thead>
+                  <tbody id="top-customers-table">
+                    <tr>
+                      <td colspan="4" class="loading-cell">Loading...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vehicles Page -->
+          <div id="page-vehicles" class="page">
+            <div class="table-card">
+              <div class="card-header">
+                <h3>All Vehicles</h3>
+              </div>
+              <div class="card-body">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Plate Number</th>
+                      <th>Make/Model</th>
+                      <th>Year</th>
+                      <th>Owner</th>
+                      <th>Last Service</th>
+                      <th>Jobs</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vehicles-table">
+                    <tr>
+                      <td colspan="7" class="loading-cell">Loading...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings Page -->
+          <div id="page-settings" class="page">
+            <div class="settings-grid">
+              <div class="settings-card">
+                <h3>Profile Settings</h3>
+                <form class="settings-form">
+                  <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="settings-name" placeholder="Your name">
+                  </div>
+                  <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="settings-email" placeholder="your@email.com">
+                  </div>
+                  <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+              </div>
+
+              <div class="settings-card">
+                <h3>Branch Settings</h3>
+                <form class="settings-form">
+                  <div class="form-group">
+                    <label>Default Branch</label>
+                    <select id="settings-branch">
+                      <option value="">Select Branch</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Working Hours</label>
+                    <div class="time-range">
+                      <input type="time" value="08:00">
+                      <span>to</span>
+                      <input type="time" value="20:00">
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Job Detail Modal -->
+    <div id="job-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modal-job-number">Job Details</h2>
+          <button class="btn-icon modal-close">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="modal-body" id="job-modal-body">
+          <!-- Dynamic content -->
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary modal-close">Close</button>
+          <button class="btn btn-primary" id="update-status-btn">Update Status</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Job Modal -->
+    <div id="new-job-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2>Create New Job Card</h2>
+          <button class="btn-icon modal-close">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="new-job-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Customer Mobile *</label>
+                <input type="tel" id="job-customer-mobile" required placeholder="+971...">
+              </div>
+              <div class="form-group">
+                <label>Customer Name</label>
+                <input type="text" id="job-customer-name" readonly placeholder="Auto-filled">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Vehicle *</label>
+                <select id="job-vehicle" required>
+                  <option value="">Select Vehicle</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Branch *</label>
+                <select id="job-branch" required>
+                  <option value="">Select Branch</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Service Type *</label>
+                <select id="job-service-type" required>
+                  <option value="">Select Service</option>
+                  <option value="diagnosis_only">Diagnosis Only</option>
+                  <option value="minor">Minor Service</option>
+                  <option value="regular">Regular Service</option>
+                  <option value="major">Major Service</option>
+                  <option value="ac_service">AC Service</option>
+                  <option value="electrical">Electrical</option>
+                  <option value="battery">Battery</option>
+                  <option value="tyre">Tyre Service</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Intake Type *</label>
+                <select id="job-intake-type" required>
+                  <option value="drop_off">Drop Off</option>
+                  <option value="pickup">Pickup Required</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Customer Notes</label>
+              <textarea id="job-notes" rows="3" placeholder="Describe the issue..."></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary modal-close">Cancel</button>
+          <button class="btn btn-primary" id="create-job-btn">Create Job</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+
+</html>

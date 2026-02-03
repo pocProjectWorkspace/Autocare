@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Service - AutoCare</title>
+    <meta name="description" content="Book your car service with AutoCare - Free pickup and delivery available">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F5BFF;
+            --primary-dark: #3D45CC;
+            --accent: #0EC7D9;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --bg-primary: #0A0E27;
+            --bg-secondary: #121832;
+            --bg-tertiary: #1A2142;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A8B2D1;
+            --text-tertiary: #6B7394;
+            --gradient-primary: linear-gradient(135deg, #4F5BFF 0%, #0EC7D9 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 0;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 48px;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: var(--bg-tertiary);
+        }
+
+        .step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .step-dot {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-dot,
+        .step.completed .step-dot {
+            background: var(--gradient-primary);
+        }
+
+        .step.completed .step-dot::after {
+            content: '✓';
+        }
+
+        .step-label {
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+
+        .step.active .step-label {
+            color: var(--text-primary);
+        }
+
+        /* Form Sections */
+        .form-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-card {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .form-card h3 {
+            font-size: 18px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 91, 255, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Service Selection */
+        .service-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .service-option {
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .service-option:hover {
+            border-color: rgba(79, 91, 255, 0.3);
+        }
+
+        .service-option.selected {
+            border-color: var(--primary);
+            background: rgba(79, 91, 255, 0.1);
+        }
+
+        .service-option input {
+            display: none;
+        }
+
+        .service-option .service-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .service-option h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .service-option p {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .service-option .service-price {
+            margin-top: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* Intake Type */
+        .intake-options {
+            display: flex;
+            gap: 16px;
+        }
+
+        .intake-option {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .intake-option.selected {
+            border-color: var(--primary);
+            background: rgba(79, 91, 255, 0.1);
+        }
+
+        .intake-option input {
+            display: none;
+        }
+
+        .intake-option .intake-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        /* Date/Time Picker */
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .time-slot {
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .time-slot:hover {
+            border-color: rgba(79, 91, 255, 0.3);
+        }
+
+        .time-slot.selected {
+            border-color: var(--primary);
+            background: rgba(79, 91, 255, 0.1);
+        }
+
+        /* Summary */
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: var(--text-secondary);
+        }
+
+        .summary-value {
+            font-weight: 600;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 0;
+            font-size: 20px;
+            font-weight: 700;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            margin-top: 16px;
+        }
+
+        .summary-total .total-amount {
+            color: var(--accent);
+        }
+
+        /* Buttons */
+        .form-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(79, 91, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin: 0 auto 24px;
+        }
+
+        @media (max-width: 768px) {
+
+            .form-row,
+            .service-options {
+                grid-template-columns: 1fr;
+            }
+
+            .intake-options {
+                flex-direction: column;
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <a href="/" class="logo">
+                <span class="logo-icon">🚗</span>
+                AutoCare
+            </a>
+        </header>
+
+        <h1>Book Your Service</h1>
+        <p class="subtitle">Get your vehicle serviced with free pickup & delivery</p>
+
+        <!-- Progress Steps -->
+        <div class="progress-steps">
+            <div class="step active" data-step="1">
+                <div class="step-dot">1</div>
+                <div class="step-label">Service</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-dot">2</div>
+                <div class="step-label">Vehicle</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-dot">3</div>
+                <div class="step-label">Schedule</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-dot">4</div>
+                <div class="step-label">Confirm</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Service Selection -->
+        <div class="form-section active" id="step-1">
+            <div class="form-card">
+                <h3>🔧 Select Service Type</h3>
+                <div class="service-options">
+                    <label class="service-option">
+                        <input type="radio" name="service" value="minor" data-price="249">
+                        <div class="service-icon">🔧</div>
+                        <h4>Minor Service</h4>
+                        <p>Oil change, filter, basic check</p>
+                        <div class="service-price">From AED 249</div>
+                    </label>
+                    <label class="service-option">
+                        <input type="radio" name="service" value="regular" data-price="449">
+                        <div class="service-icon">⚙️</div>
+                        <h4>Regular Service</h4>
+                        <p>Complete maintenance package</p>
+                        <div class="service-price">From AED 449</div>
+                    </label>
+                    <label class="service-option">
+                        <input type="radio" name="service" value="major" data-price="899">
+                        <div class="service-icon">🔩</div>
+                        <h4>Major Service</h4>
+                        <p>Full inspection & overhaul</p>
+                        <div class="service-price">From AED 899</div>
+                    </label>
+                    <label class="service-option">
+                        <input type="radio" name="service" value="ac" data-price="199">
+                        <div class="service-icon">❄️</div>
+                        <h4>AC Service</h4>
+                        <p>AC check & gas recharge</p>
+                        <div class="service-price">From AED 199</div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h3>🚗 How would you like to bring your vehicle?</h3>
+                <div class="intake-options">
+                    <label class="intake-option">
+                        <input type="radio" name="intake" value="pickup">
+                        <div class="intake-icon">🚙</div>
+                        <h4>Pickup & Delivery</h4>
+                        <p>We'll come to you (FREE)</p>
+                    </label>
+                    <label class="intake-option">
+                        <input type="radio" name="intake" value="dropoff">
+                        <div class="intake-icon">🏢</div>
+                        <h4>Drop Off</h4>
+                        <p>Bring to our service center</p>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="nextStep(2)">Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Vehicle Details -->
+        <div class="form-section" id="step-2">
+            <div class="form-card">
+                <h3>🚗 Vehicle Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Plate Number *</label>
+                        <input type="text" id="plate" placeholder="e.g., A 12345">
+                    </div>
+                    <div class="form-group">
+                        <label>Emirates</label>
+                        <select id="emirates">
+                            <option value="dubai">Dubai</option>
+                            <option value="abudhabi">Abu Dhabi</option>
+                            <option value="sharjah">Sharjah</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Make *</label>
+                        <select id="make">
+                            <option value="">Select Make</option>
+                            <option value="toyota">Toyota</option>
+                            <option value="nissan">Nissan</option>
+                            <option value="honda">Honda</option>
+                            <option value="mercedes">Mercedes</option>
+                            <option value="bmw">BMW</option>
+                            <option value="lexus">Lexus</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Model *</label>
+                        <input type="text" id="model" placeholder="e.g., Camry">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Year</label>
+                        <select id="year">
+                            <option value="">Select Year</option>
+                            <script>
+                                for (let y = 2024; y >= 2000; y--) {
+                                    document.write(`<option value="${y}">${y}</option>`);
+                                }
+                            </script>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Mileage (km)</label>
+                        <input type="number" id="mileage" placeholder="e.g., 50000">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h3>📝 Describe the Issue (Optional)</h3>
+                <div class="form-group">
+                    <textarea id="notes" rows="4" placeholder="Any specific issues or requests..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="prevStep(1)">← Back</button>
+                <button class="btn btn-primary" onclick="nextStep(3)">Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Schedule -->
+        <div class="form-section" id="step-3">
+            <div class="form-card">
+                <h3>📅 Select Date</h3>
+                <div class="form-group">
+                    <input type="date" id="date" min="">
+                </div>
+                <h3 style="margin-top: 24px;">⏰ Preferred Time</h3>
+                <div class="time-slots">
+                    <div class="time-slot" data-time="08:00">8:00 AM</div>
+                    <div class="time-slot" data-time="09:00">9:00 AM</div>
+                    <div class="time-slot" data-time="10:00">10:00 AM</div>
+                    <div class="time-slot" data-time="11:00">11:00 AM</div>
+                    <div class="time-slot" data-time="12:00">12:00 PM</div>
+                    <div class="time-slot" data-time="14:00">2:00 PM</div>
+                    <div class="time-slot" data-time="15:00">3:00 PM</div>
+                    <div class="time-slot" data-time="16:00">4:00 PM</div>
+                </div>
+            </div>
+
+            <div class="form-card" id="address-card" style="display:none;">
+                <h3>📍 Pickup Address</h3>
+                <div class="form-group">
+                    <label>Full Address *</label>
+                    <textarea id="address" rows="2" placeholder="Building, Street, Area, City"></textarea>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="prevStep(2)">← Back</button>
+                <button class="btn btn-primary" onclick="nextStep(4)">Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Confirm -->
+        <div class="form-section" id="step-4">
+            <div class="form-card">
+                <h3>📋 Booking Summary</h3>
+                <div class="summary-item">
+                    <span class="summary-label">Service</span>
+                    <span class="summary-value" id="summary-service">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Vehicle</span>
+                    <span class="summary-value" id="summary-vehicle">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Date & Time</span>
+                    <span class="summary-value" id="summary-datetime">-</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Intake Type</span>
+                    <span class="summary-value" id="summary-intake">-</span>
+                </div>
+                <div class="summary-total">
+                    <span>Estimated Total</span>
+                    <span class="total-amount" id="summary-price">AED 0</span>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h3>📱 Your Contact Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="name" placeholder="Your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Number *</label>
+                        <input type="tel" id="mobile" placeholder="+971 50 123 4567">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email (for invoice)</label>
+                    <input type="email" id="email" placeholder="your@email.com">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="prevStep(3)">← Back</button>
+                <button class="btn btn-primary" onclick="submitBooking()">Confirm Booking ✓</button>
+            </div>
+        </div>
+
+        <!-- Success -->
+        <div class="form-section" id="step-success">
+            <div class="form-card">
+                <div class="success-message">
+                    <div class="success-icon">✓</div>
+                    <h2>Booking Confirmed!</h2>
+                    <p style="color: var(--text-secondary); margin: 16px 0;">Your service has been scheduled. We'll send
+                        you a confirmation SMS shortly.</p>
+                    <p style="font-size: 24px; font-weight: 700; color: var(--accent); margin: 24px 0;"
+                        id="booking-ref">REF: AC-000000</p>
+                    <a href="/" class="btn btn-primary" style="display: inline-flex; flex: none;">Return Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set min date to today
+        document.getElementById('date').min = new Date().toISOString().split('T')[0];
+
+        let selectedService = null;
+        let selectedIntake = null;
+        let selectedTime = null;
+        let servicePrice = 0;
+
+        // Service selection
+        document.querySelectorAll('.service-option').forEach(opt => {
+            opt.addEventListener('click', function () {
+                document.querySelectorAll('.service-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedService = this.querySelector('input').value;
+                servicePrice = parseInt(this.querySelector('input').dataset.price);
+            });
+        });
+
+        // Intake selection
+        document.querySelectorAll('.intake-option').forEach(opt => {
+            opt.addEventListener('click', function () {
+                document.querySelectorAll('.intake-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedIntake = this.querySelector('input').value;
+                document.getElementById('address-card').style.display = selectedIntake === 'pickup' ? 'block' : 'none';
+            });
+        });
+
+        // Time slot selection
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.addEventListener('click', function () {
+                document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedTime = this.dataset.time;
+            });
+        });
+
+        function nextStep(step) {
+            // Hide all sections
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 'completed'));
+
+            // Show target section
+            document.getElementById(`step-${step}`).classList.add('active');
+
+            // Update progress
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.querySelector(`.step[data-step="${i}"]`);
+                if (i < step) stepEl.classList.add('completed');
+                if (i === step) stepEl.classList.add('active');
+            }
+
+            // Update summary if step 4
+            if (step === 4) updateSummary();
+        }
+
+        function prevStep(step) {
+            nextStep(step);
+        }
+
+        function updateSummary() {
+            const serviceNames = { minor: 'Minor Service', regular: 'Regular Service', major: 'Major Service', ac: 'AC Service' };
+            document.getElementById('summary-service').textContent = serviceNames[selectedService] || '-';
+            document.getElementById('summary-vehicle').textContent =
+                `${document.getElementById('make').value} ${document.getElementById('model').value} - ${document.getElementById('plate').value}`;
+            document.getElementById('summary-datetime').textContent =
+                `${document.getElementById('date').value} at ${selectedTime || '-'}`;
+            document.getElementById('summary-intake').textContent =
+                selectedIntake === 'pickup' ? 'Pickup & Delivery' : 'Drop Off';
+            document.getElementById('summary-price').textContent = `AED ${servicePrice}`;
+        }
+
+        function submitBooking() {
+            // Generate random ref
+            const ref = 'AC-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            document.getElementById('booking-ref').textContent = 'REF: ' + ref;
+
+            // Show success
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('step-success').classList.add('active');
+
+            // In production, would call API here
+        }
+    </script>
+</body>
+
+</html>
