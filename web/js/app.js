@@ -601,20 +601,45 @@ async function openNewJobModal() {
 
 async function createJob() {
     const btn = document.getElementById('create-job-btn');
+    const isNewVehicle = !document.getElementById('new-vehicle-section').classList.contains('hidden');
     btn.disabled = true;
 
     try {
+        let vehicleId = document.getElementById('job-vehicle').value;
+        const mobile = document.getElementById('job-customer-mobile').value;
+
+        // 1. If it's a new vehicle, register it first
+        if (isNewVehicle) {
+            const vehicleData = {
+                plate_number: document.getElementById('new-v-plate').value,
+                make: document.getElementById('new-v-make').value,
+                mulkiya_number: document.getElementById('new-v-mulkiya').value,
+                year: parseInt(document.getElementById('new-v-year').value) || new Date().getFullYear(),
+                mobile: mobile // We'll use this to associate with customer on backend
+            };
+
+            if (!vehicleData.plate_number || !vehicleData.make || !vehicleData.mulkiya_number) {
+                alert('Please fill all required vehicle fields (Plate, Make, Mulkiya)');
+                btn.disabled = false;
+                return;
+            }
+
+            const newVehicle = await api.post('/admin/vehicles/quick-register', vehicleData);
+            vehicleId = newVehicle.id;
+        }
+
+        // 2. Create the Job Card
         const data = {
-            vehicle_id: document.getElementById('job-vehicle').value,
+            vehicle_id: vehicleId,
             branch_id: document.getElementById('job-branch').value,
             service_type: document.getElementById('job-service-type').value,
             intake_type: document.getElementById('job-intake-type').value,
             customer_notes: document.getElementById('job-notes').value,
         };
 
-        // Validation
         if (!data.vehicle_id || !data.branch_id || !data.service_type) {
-            alert('Please fill all required fields');
+            alert('Please select a vehicle and branch');
+            btn.disabled = false;
             return;
         }
 
@@ -627,7 +652,7 @@ async function createJob() {
         }
 
     } catch (error) {
-        alert('Failed to create job: ' + error.message);
+        alert('Error: ' + error.message);
     } finally {
         btn.disabled = false;
     }
@@ -799,6 +824,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error('Customer not found');
                     }
                 }, 500);
+            }
+        });
+    }
+
+    // New Vehicle toggle
+    const toggleBtn = document.getElementById('toggle-new-vehicle');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const section = document.getElementById('new-vehicle-section');
+            const select = document.getElementById('job-vehicle');
+            section.classList.toggle('hidden');
+
+            if (!section.classList.contains('hidden')) {
+                toggleBtn.textContent = 'Cancel';
+                select.disabled = true;
+                select.value = '';
+            } else {
+                toggleBtn.textContent = '+ New Vehicle';
+                select.disabled = false;
             }
         });
     }

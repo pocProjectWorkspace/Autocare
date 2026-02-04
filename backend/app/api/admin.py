@@ -10,9 +10,10 @@ from datetime import datetime, timedelta
 
 from app.core.database import get_db
 from app.core.deps import require_admin
-from app.models import User, UserRole, Branch, JobCard, JobStatus, Payment, PaymentStatus
+from app.models import User, UserRole, Branch, JobCard, JobStatus, Payment, PaymentStatus, Vehicle
 from app.schemas.user import StaffCreate, VendorCreate, UserResponse
 from app.schemas.reports import DashboardStats, JobStatusSummary
+from app.schemas.vehicle import QuickVehicleRegister, VehicleResponse
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -123,6 +124,47 @@ async def lookup_customer(
             } for v in vehicles
         ]
     }
+
+
+@router.post("/vehicles/quick-register", response_model=VehicleResponse)
+async def quick_register_vehicle(
+    data: QuickVehicleRegister,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Quickly register a vehicle for an existing customer"""
+    # 1. Find customer by mobile
+    customer = db.query(User).filter(
+        User.mobile == data.mobile,
+        User.role == UserRole.CUSTOMER
+    ).first()
+    
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found. Please register customer first.")
+    
+    # 2. Create vehicle
+    # For quick register, we split make/model if possible, or just use make
+    make = data.make
+    model = "Other"
+    if " " in data.make:
+        parts = data.make.split(" ", 1)
+        make = parts[0]
+        model = parts[1]
+
+    vehicle = Vehicle(
+        owner_id=customer.id,
+        plate_number=data.plate_number,
+        make=make,
+        model=model,
+        year=data.year,
+        mulkiya_number=data.mulkiya_number
+    )
+    
+    db.add(vehicle)
+    db.commit()
+    db.refresh(vehicle)
+    
+    return vehicle
 
 
 @router.post("/staff", response_model=UserResponse)

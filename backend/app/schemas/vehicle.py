@@ -57,3 +57,11 @@ class VehicleResponse(VehicleBase):
 class VehicleListResponse(BaseModel):
     vehicles: List[VehicleResponse]
     total: int
+
+
+class QuickVehicleRegister(BaseModel):
+    plate_number: str
+    make: str
+    mulkiya_number: str
+    year: int
+    mobile: str

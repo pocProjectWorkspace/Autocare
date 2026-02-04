@@ -608,9 +608,13 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Vehicle *</label>
-                <select id="job-vehicle" required>
-                  <option value="">Select Vehicle</option>
-                </select>
+                <div class="input-with-action">
+                  <select id="job-vehicle" required>
+                    <option value="">Select Vehicle</option>
+                  </select>
+                  <button type="button" class="btn-sm btn-outline" id="toggle-new-vehicle"
+                    style="margin-top: 4px; font-size: 11px;">+ New Vehicle</button>
+                </div>
               </div>
               <div class="form-group">
                 <label>Branch *</label>
@@ -619,6 +623,33 @@
                 </select>
               </div>
             </div>
+
+            <!-- New Vehicle Section (Hidden by default) -->
+            <div id="new-vehicle-section" class="hidden"
+              style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed rgba(255,255,255,0.1);">
+              <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--accent);">Register New Vehicle</h4>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Plate Number *</label>
+                  <input type="text" id="new-v-plate" placeholder="e.g. A 12345">
+                </div>
+                <div class="form-group">
+                  <label>Make & Model *</label>
+                  <input type="text" id="new-v-make" placeholder="e.g. Toyota Camry">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Mulkiya (Registration) # *</label>
+                  <input type="text" id="new-v-mulkiya" placeholder="Registration number">
+                </div>
+                <div class="form-group">
+                  <label>Year</label>
+                  <input type="number" id="new-v-year" placeholder="2024">
+                </div>
+              </div>
+            </div>
+
             <div class="form-row">
               <div class="form-group">
                 <label>Service Type *</label>

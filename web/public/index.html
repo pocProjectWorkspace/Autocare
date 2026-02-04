@@ -607,6 +607,71 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Vehicle *</label>
+                    <div class="input-with-action">
+                        <select id="job-vehicle" required>
+                            <option value="">Select Vehicle</option>
+                        </select>
+                        <button type="button" class="btn-sm btn-outline" id="toggle-new-vehicle">+ New</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Branch *</label>
+                    <select id="job-branch" required>
+                        <option value="">Select Branch</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- New Vehicle Section (Hidden by default) -->
+            <div id="new-vehicle-section" class="hidden-section hidden">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Plate Number *</label>
+                        <input type="text" id="new-v-plate" placeholder="e.g. A 12345">
+                    </div>
+                    <div class="form-group">
+                        <label>Make/Model *</label>
+                        <input type="text" id="new-v-make" placeholder="e.g. Toyota Camry">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Mulkiya (Registration) Number *</label>
+                        <input type="text" id="new-v-mulkiya" placeholder="Registration number">
+                    </div>
+                    <div class="form-group">
+                        <label>Year</label>
+                        <input type="number" id="new-v-year" placeholder="2024">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Service Type *</label>
+                    <select id="job-service-type" required>
+                        <option value="">Select Service</option>
+                        <option value="diagnosis_only">Diagnosis Only</option>
+                        <option value="minor">Minor Service</option>
+                        <option value="regular">Regular Service</option>
+                        <option value="major">Major Service</option>
+                        <option value="ac_service">AC Service</option>
+                        <option value="electrical">Electrical</option>
+                        <option value="battery">Battery</option>
+                        <option value="tyre">Tyre Service</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Intake Type *</label>
+                    <select id="job-intake-type" required>
+                        <option value="drop_off">Drop Off</option>
+                        <option value="pickup">Pickup Required</option>
+                    </select>
+                </div>
+            </div>
             <div class="footer-content">
                 <div class="footer-about">
                     <a href="/" class="logo">
