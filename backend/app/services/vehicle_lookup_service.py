@@ -28,10 +28,16 @@ class VehicleLookupService:
                 "model": "Land Cruiser",
                 "year": 2023,
                 "color": "White",
-                "vin": "VIN" + plate_number.replace(" ", ""),
+                "vin": "VIN" + plate_number.replace(" ", "") + "XYZ",
+                "chassis_number": "CH" + plate_number.replace(" ", "") + "123",
+                "engine_number": "ENG" + plate_number.replace(" ", "") + "789",
                 "mulkiya_expiry": "2025-12-31",
-                "engine_number": "E123456789",
-                "chassis_number": "C987654321"
+                "engine_capacity": "4.0L",
+                "cylinders": 6,
+                "fuel_type": "Petrol",
+                "transmission": "Automatic",
+                "origin": "GCC",
+                "body_type": "SUV"
             }
         
         # Implementation for CarRegistrationAPI.ae example:

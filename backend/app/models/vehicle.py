@@ -24,11 +24,20 @@ class Vehicle(Base):
     year = Column(Integer, nullable=True)
     color = Column(String(50), nullable=True)
     vin = Column(String(50), nullable=True)  # Vehicle Identification Number
+    chassis_number = Column(String(100), nullable=True)
+    engine_number = Column(String(100), nullable=True)
+    engine_capacity = Column(String(50), nullable=True)
+    cylinders = Column(Integer, nullable=True)
+    fuel_type = Column(String(50), nullable=True)
+    transmission = Column(String(50), nullable=True)
+    origin = Column(String(100), nullable=True)  # GCC, Japan, etc.
+    body_type = Column(String(100), nullable=True)
     
     # Registration
     mulkiya_number = Column(String(50), nullable=True)
     mulkiya_url = Column(String(500), nullable=True)  # Document upload
     mulkiya_expiry = Column(DateTime, nullable=True)
+    registration_date = Column(DateTime, nullable=True)
     
     # Insurance
     insurance_company = Column(String(255), nullable=True)
@@ -37,6 +46,8 @@ class Vehicle(Base):
     
     # Additional info
     current_mileage = Column(Integer, nullable=True)
+    weight = Column(Integer, nullable=True)
+    seating_capacity = Column(Integer, nullable=True)
     notes = Column(Text, nullable=True)
     
     # Timestamps

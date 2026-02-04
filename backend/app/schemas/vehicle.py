@@ -65,3 +65,8 @@ class QuickVehicleRegister(BaseModel):
     mulkiya_number: str
     year: int
     mobile: str
+    customer_name: Optional[str] = None
+    vin: Optional[str] = None
+    chassis_number: Optional[str] = None
+    engine_number: Optional[str] = None
+    mulkiya_expiry: Optional[datetime] = None

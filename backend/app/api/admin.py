@@ -133,18 +133,28 @@ async def quick_register_vehicle(
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-    """Quickly register a vehicle for an existing customer"""
-    # 1. Find customer by mobile
+    """Quickly register a vehicle and customer on-the-fly"""
+    # 1. Find or create customer
     customer = db.query(User).filter(
         User.mobile == data.mobile,
         User.role == UserRole.CUSTOMER
     ).first()
     
     if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found. Please register customer first.")
+        if not data.customer_name:
+             raise HTTPException(status_code=400, detail="Customer name is required for new registration")
+        
+        customer = User(
+            full_name=data.customer_name,
+            mobile=data.mobile,
+            role=UserRole.CUSTOMER,
+            is_active=True,
+            is_verified=True
+        )
+        db.add(customer)
+        db.flush() # Get ID for vehicle association
     
-    # 2. Create vehicle
-    # For quick register, we split make/model if possible, or just use make
+    # 2. Create vehicle with rich data from API or UI
     make = data.make
     model = "Other"
     if " " in data.make:
@@ -158,7 +168,11 @@ async def quick_register_vehicle(
         make=make,
         model=model,
         year=data.year,
-        mulkiya_number=data.mulkiya_number
+        mulkiya_number=data.mulkiya_number,
+        mulkiya_expiry=data.mulkiya_expiry,
+        vin=data.vin,
+        chassis_number=data.chassis_number,
+        engine_number=data.engine_number
     )
     
     db.add(vehicle)

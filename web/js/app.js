@@ -607,19 +607,25 @@ async function createJob() {
     try {
         let vehicleId = document.getElementById('job-vehicle').value;
         const mobile = document.getElementById('job-customer-mobile').value;
+        const customerName = document.getElementById('job-customer-name').value;
 
-        // 1. If it's a new vehicle, register it first
+        // 1. If it's a new vehicle, register it first (also handles new customer)
         if (isNewVehicle) {
             const vehicleData = {
                 plate_number: document.getElementById('new-v-plate').value,
                 make: document.getElementById('new-v-make').value,
                 mulkiya_number: document.getElementById('new-v-mulkiya').value,
                 year: parseInt(document.getElementById('new-v-year').value) || new Date().getFullYear(),
-                mobile: mobile // We'll use this to associate with customer on backend
+                mobile: mobile,
+                customer_name: customerName,
+                vin: document.getElementById('new-v-vin').value,
+                chassis_number: document.getElementById('new-v-vin').value, // Maps to same for now
+                engine_number: document.getElementById('new-v-engine').value,
+                mulkiya_expiry: document.getElementById('new-v-mulkiya-expiry').value || null
             };
 
-            if (!vehicleData.plate_number || !vehicleData.make || !vehicleData.mulkiya_number) {
-                alert('Please fill all required vehicle fields (Plate, Make, Mulkiya)');
+            if (!vehicleData.plate_number || !vehicleData.make || !vehicleData.mulkiya_number || !vehicleData.customer_name) {
+                alert('Please fill customer name and all required vehicle fields');
                 btn.disabled = false;
                 return;
             }
@@ -865,7 +871,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (details) {
                     document.getElementById('new-v-make').value = `${details.make} ${details.model}`;
                     document.getElementById('new-v-year').value = details.year;
-                    document.getElementById('new-v-mulkiya').value = details.mulkiya_expiry; // Using expiry as a demo placeholder
+                    document.getElementById('new-v-mulkiya').value = details.mulkiya_number || details.vin.substring(0, 8);
+                    document.getElementById('new-v-vin').value = details.vin;
+                    document.getElementById('new-v-engine').value = details.engine_number;
+
+                    if (details.mulkiya_expiry) {
+                        document.getElementById('new-v-mulkiya-expiry').value = details.mulkiya_expiry;
+                    }
 
                     // Show success
                     fetchBtn.innerHTML = '✅';
