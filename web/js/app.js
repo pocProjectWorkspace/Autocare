@@ -846,6 +846,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Vehicle lookup from external API
+    const fetchBtn = document.getElementById('fetch-v-details');
+    if (fetchBtn) {
+        fetchBtn.addEventListener('click', async () => {
+            const plate = document.getElementById('new-v-plate').value;
+            if (!plate) {
+                alert('Please enter a plate number first');
+                return;
+            }
+
+            fetchBtn.disabled = true;
+            fetchBtn.innerHTML = '<span>...</span>';
+
+            try {
+                const details = await api.get(`/admin/vehicles/lookup-plate?plate_number=${encodeURIComponent(plate)}`);
+                if (details) {
+                    document.getElementById('new-v-make').value = `${details.make} ${details.model}`;
+                    document.getElementById('new-v-year').value = details.year;
+                    document.getElementById('new-v-mulkiya').value = details.mulkiya_expiry; // Using expiry as a demo placeholder
+
+                    // Show success
+                    fetchBtn.innerHTML = '✅';
+                    setTimeout(() => { fetchBtn.innerHTML = '🔍 Fetch'; fetchBtn.disabled = false; }, 2000);
+                }
+            } catch (error) {
+                alert('Vehicle data not found or API service unavailable');
+                fetchBtn.innerHTML = '🔍 Fetch';
+                fetchBtn.disabled = false;
+            }
+        });
+    }
 });
 
 // Make viewJob global

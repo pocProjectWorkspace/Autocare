@@ -14,6 +14,7 @@ from app.models import User, UserRole, Branch, JobCard, JobStatus, Payment, Paym
 from app.schemas.user import StaffCreate, VendorCreate, UserResponse
 from app.schemas.reports import DashboardStats, JobStatusSummary
 from app.schemas.vehicle import QuickVehicleRegister, VehicleResponse
+from app.services.vehicle_lookup_service import vehicle_lookup
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -165,6 +166,20 @@ async def quick_register_vehicle(
     db.refresh(vehicle)
     
     return vehicle
+
+
+@router.get("/vehicles/lookup-plate")
+async def lookup_plate(
+    plate_number: str,
+    emirate: str = "Dubai",
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Lookup vehicle details from external UAE vehicle data API"""
+    details = await vehicle_lookup.lookup_by_plate(plate_number, emirate)
+    if not details:
+        raise HTTPException(status_code=404, detail="Vehicle details not found for this plate")
+    return details
 
 
 @router.post("/staff", response_model=UserResponse)
