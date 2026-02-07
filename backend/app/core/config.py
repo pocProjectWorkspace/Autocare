@@ -63,9 +63,14 @@ class Settings(BaseSettings):
     TWILIO_ACCOUNT_SID: str = ""
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_WHATSAPP_NUMBER: str = ""
-    
+    WHATSAPP_FROM_NUMBER: str = ""
+
     # Firebase / Push Notifications
     FIREBASE_CREDENTIALS_PATH: str = ""
+
+    # Vehicle Lookup API
+    VEHICLE_LOOKUP_API_KEY: str = ""
+    VEHICLE_LOOKUP_API_URL: str = ""
     
     # Business Rules
     DEFAULT_DEPOSIT_PERCENTAGE: int = 50

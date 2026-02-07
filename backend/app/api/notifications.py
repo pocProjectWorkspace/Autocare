@@ -23,7 +23,7 @@ async def list_notifications(
     db: Session = Depends(get_db)
 ):
     """List user notifications"""
-    service = NotificationService(db)
+    service = NotificationService(db, org_id=current_user.organization_id)
     notifications = service.get_user_notifications(current_user.id, unread_only, limit)
     unread = sum(1 for n in notifications if not n.is_read)
     return NotificationListResponse(
@@ -40,6 +40,6 @@ async def mark_as_read(
     db: Session = Depends(get_db)
 ):
     """Mark notifications as read"""
-    service = NotificationService(db)
+    service = NotificationService(db, org_id=current_user.organization_id)
     service.mark_as_read(data.notification_ids, current_user.id)
     return {"message": "Marked as read"}

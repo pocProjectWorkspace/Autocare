@@ -1,6 +1,7 @@
 """
 Models package
 """
+from app.models.organization import Organization, SubscriptionPlan, SubscriptionStatus
 from app.models.user import User, UserRole, OTPCode
 from app.models.vehicle import Vehicle
 from app.models.branch import Branch
@@ -12,6 +13,8 @@ from app.models.payment import Payment, PaymentStatus, PaymentMethod, PaymentTyp
 from app.models.notification import Notification, NotificationType, NotificationChannel, JobUpdate, AuditLog
 
 __all__ = [
+    # Organization
+    "Organization", "SubscriptionPlan", "SubscriptionStatus",
     # User
     "User", "UserRole", "OTPCode",
     # Vehicle

@@ -27,7 +27,7 @@ async def create_booking(
     db: Session = Depends(get_db)
 ):
     """Create new service booking"""
-    service = JobCardService(db)
+    service = JobCardService(db, org_id=current_user.organization_id)
     job = service.create_booking(current_user.id, data)
     return _build_job_response(job)
 
@@ -42,7 +42,7 @@ async def list_jobs(
     db: Session = Depends(get_db)
 ):
     """List job cards based on user role"""
-    service = JobCardService(db)
+    service = JobCardService(db, org_id=current_user.organization_id)
     statuses = None
     if status_filter:
         statuses = [JobStatus(s.strip()) for s in status_filter.split(",")]
@@ -56,7 +56,7 @@ async def get_job(
     db: Session = Depends(get_db)
 ):
     """Get job card details"""
-    service = JobCardService(db)
+    service = JobCardService(db, org_id=current_user.organization_id)
     job = service.get_job_card(job_id, current_user)
     return _build_job_response(job)
 
@@ -69,7 +69,7 @@ async def update_status(
     db: Session = Depends(get_db)
 ):
     """Update job status (Staff only)"""
-    service = JobCardService(db)
+    service = JobCardService(db, org_id=current_user.organization_id)
     job = service.update_status(job_id, current_user, data.status, data.notes)
     return {"message": "Status updated", "status": job.status.value}
 
@@ -82,7 +82,7 @@ async def add_job_update(
     db: Session = Depends(get_db)
 ):
     """Add a progress update with images (Staff only)"""
-    service = JobCardService(db)
+    service = JobCardService(db, org_id=current_user.organization_id)
     update = service.add_update(
         job_id, current_user, data.title, data.message, 
         data.media_urls, data.is_visible_to_customer
@@ -105,7 +105,7 @@ async def create_estimate(
     db: Session = Depends(get_db)
 ):
     """Create/update job estimate (Staff only)"""
-    service = JobCardService(db)
+    service = JobCardService(db, org_id=current_user.organization_id)
     job = service.create_estimate(job_id, current_user, data)
     return _build_job_response(job)
 
@@ -118,7 +118,7 @@ async def approve_estimate(
     db: Session = Depends(get_db)
 ):
     """Approve or reject estimate (Customer)"""
-    service = JobCardService(db)
+    service = JobCardService(db, org_id=current_user.organization_id)
     job = service.approve_estimate(job_id, current_user, data.approved)
     return {"message": "Estimate " + ("approved" if data.approved else "rejected"), "status": job.status.value}
 
@@ -131,7 +131,7 @@ async def approve_parts(
     db: Session = Depends(get_db)
 ):
     """Approve or reject parts quote (Customer)"""
-    service = JobCardService(db)
+    service = JobCardService(db, org_id=current_user.organization_id)
     job = service.approve_parts(job_id, current_user, data.approved)
     return {"message": "Parts " + ("approved" if data.approved else "rejected"), "status": job.status.value}
 
@@ -144,7 +144,7 @@ async def submit_feedback(
     db: Session = Depends(get_db)
 ):
     """Submit customer feedback"""
-    service = JobCardService(db)
+    service = JobCardService(db, org_id=current_user.organization_id)
     job = service.submit_feedback(job_id, current_user, data.rating, data.feedback)
     return {"message": "Feedback submitted", "rating": job.customer_rating}
 

@@ -21,14 +21,16 @@ class WhatsAppAdapter:
 
 class NotificationService:
     """Service for sending notifications"""
-    
-    def __init__(self, db: Session):
+
+    def __init__(self, db: Session, org_id=None):
         self.db = db
+        self.org_id = org_id
         self.whatsapp_adapter = WhatsAppAdapter()
     
     def create_notification(self, user_id, notification_type: NotificationType, title: str, message: str,
                           job_card_id=None, channel: NotificationChannel = NotificationChannel.IN_APP, data: dict = None):
         notification = Notification(
+            organization_id=self.org_id,
             user_id=user_id, job_card_id=job_card_id, notification_type=notification_type,
             title=title, message=message, channel=channel, data=data or {}
         )

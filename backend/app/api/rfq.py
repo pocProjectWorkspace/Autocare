@@ -23,7 +23,7 @@ async def create_rfq(
     db: Session = Depends(get_db)
 ):
     """Create RFQ for job parts (Staff only)"""
-    service = RFQService(db)
+    service = RFQService(db, org_id=current_user.organization_id)
     return service.create_rfq(job_id, current_user, data)
 
 
@@ -35,7 +35,7 @@ async def send_rfq(
     db: Session = Depends(get_db)
 ):
     """Send RFQ to vendors (Staff only)"""
-    service = RFQService(db)
+    service = RFQService(db, org_id=current_user.organization_id)
     return service.send_rfq(rfq_id, current_user, vendor_ids)
 
 
@@ -46,7 +46,7 @@ async def get_rfq(
     db: Session = Depends(get_db)
 ):
     """Get RFQ with quotes"""
-    service = RFQService(db)
+    service = RFQService(db, org_id=current_user.organization_id)
     return service.get_rfq(rfq_id, current_user)
 
 
@@ -58,7 +58,7 @@ async def select_quote(
     db: Session = Depends(get_db)
 ):
     """Select winning quote (Staff only)"""
-    service = RFQService(db)
+    service = RFQService(db, org_id=current_user.organization_id)
     return service.select_quote(rfq_id, current_user, data)
 
 
@@ -75,7 +75,7 @@ async def list_vendor_rfqs(
     db: Session = Depends(get_db)
 ):
     """List RFQs for vendor"""
-    service = RFQService(db)
+    service = RFQService(db, org_id=current_user.organization_id)
     statuses = None
     if status_filter:
         statuses = [RFQStatus(s.strip()) for s in status_filter.split(",")]
@@ -91,5 +91,5 @@ async def submit_quote(
     db: Session = Depends(get_db)
 ):
     """Submit quote for RFQ"""
-    service = RFQService(db)
+    service = RFQService(db, org_id=current_user.organization_id)
     return service.submit_quote(rfq_id, current_user, data)

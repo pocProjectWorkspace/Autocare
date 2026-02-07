@@ -106,15 +106,18 @@ class AuthService:
         self.db.commit()
         
         # Generate tokens
-        access_token = create_access_token({"sub": str(user.id), "role": user.role.value})
+        token_data = {"sub": str(user.id), "role": user.role.value}
+        if user.organization_id:
+            token_data["org_id"] = str(user.organization_id)
+        access_token = create_access_token(token_data)
         refresh_token = create_refresh_token({"sub": str(user.id)})
-        
+
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             user=UserResponse.model_validate(user)
         )
-    
+
     def register(self, data: RegisterRequest) -> TokenResponse:
         """Register new customer"""
         # Verify OTP
@@ -148,15 +151,18 @@ class AuthService:
         self.db.refresh(user)
         
         # Generate tokens
-        access_token = create_access_token({"sub": str(user.id), "role": user.role.value})
+        token_data = {"sub": str(user.id), "role": user.role.value}
+        if user.organization_id:
+            token_data["org_id"] = str(user.organization_id)
+        access_token = create_access_token(token_data)
         refresh_token = create_refresh_token({"sub": str(user.id)})
-        
+
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             user=UserResponse.model_validate(user)
         )
-    
+
     def refresh_token(self, refresh_token: str) -> TokenResponse:
         """Refresh access token"""
         payload = decode_token(refresh_token)
@@ -177,7 +183,10 @@ class AuthService:
             )
         
         # Generate new tokens
-        new_access_token = create_access_token({"sub": str(user.id), "role": user.role.value})
+        token_data = {"sub": str(user.id), "role": user.role.value}
+        if user.organization_id:
+            token_data["org_id"] = str(user.organization_id)
+        new_access_token = create_access_token(token_data)
         new_refresh_token = create_refresh_token({"sub": str(user.id)})
         
         return TokenResponse(

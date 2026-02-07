@@ -25,39 +25,49 @@ async def get_dashboard(
     db: Session = Depends(get_db)
 ):
     """Admin dashboard statistics"""
+    org_id = current_user.organization_id
     today = datetime.utcnow().date()
     month_start = today.replace(day=1)
-    
-    total_jobs = db.query(JobCard).count()
-    pending = db.query(JobCard).filter(JobCard.status.in_([
+
+    # Base query filtered by org
+    def job_q():
+        q = db.query(JobCard)
+        if org_id:
+            q = q.filter(JobCard.organization_id == org_id)
+        return q
+
+    def pay_q():
+        q = db.query(func.sum(Payment.amount)).filter(Payment.status == PaymentStatus.COMPLETED)
+        if org_id:
+            q = q.filter(Payment.organization_id == org_id)
+        return q
+
+    total_jobs = job_q().count()
+    pending = job_q().filter(JobCard.status.in_([
         JobStatus.REQUESTED, JobStatus.SCHEDULED, JobStatus.AWAITING_ESTIMATE_APPROVAL,
         JobStatus.AWAITING_PARTS_APPROVAL, JobStatus.AWAITING_PAYMENT
     ])).count()
-    in_progress = db.query(JobCard).filter(JobCard.status.in_([
+    in_progress = job_q().filter(JobCard.status.in_([
         JobStatus.IN_INTAKE, JobStatus.DIAGNOSED, JobStatus.IN_SERVICE, JobStatus.TESTING
     ])).count()
-    completed = db.query(JobCard).filter(JobCard.status == JobStatus.CLOSED).count()
-    
-    today_revenue = db.query(func.sum(Payment.amount)).filter(
-        Payment.status == PaymentStatus.COMPLETED,
-        func.date(Payment.paid_at) == today
-    ).scalar() or 0
-    
-    month_revenue = db.query(func.sum(Payment.amount)).filter(
-        Payment.status == PaymentStatus.COMPLETED,
-        Payment.paid_at >= month_start
-    ).scalar() or 0
-    
-    pending_approvals = db.query(JobCard).filter(JobCard.status.in_([
+    completed = job_q().filter(JobCard.status == JobStatus.CLOSED).count()
+
+    today_revenue = pay_q().filter(func.date(Payment.paid_at) == today).scalar() or 0
+    month_revenue = pay_q().filter(Payment.paid_at >= month_start).scalar() or 0
+
+    pending_approvals = job_q().filter(JobCard.status.in_([
         JobStatus.AWAITING_ESTIMATE_APPROVAL, JobStatus.AWAITING_PARTS_APPROVAL
     ])).count()
-    
-    pending_payments = db.query(JobCard).filter(
+
+    pending_payments = job_q().filter(
         JobStatus.AWAITING_PAYMENT == JobCard.status
     ).count()
-    
+
     # Status breakdown
-    status_counts = db.query(JobCard.status, func.count(JobCard.id)).group_by(JobCard.status).all()
+    status_q = db.query(JobCard.status, func.count(JobCard.id)).group_by(JobCard.status)
+    if org_id:
+        status_q = status_q.filter(JobCard.organization_id == org_id)
+    status_counts = status_q.all()
     jobs_by_status = [
         JobStatusSummary(status=s.value, count=c, percentage=round(c/total_jobs*100, 1) if total_jobs else 0)
         for s, c in status_counts
@@ -86,6 +96,8 @@ async def list_users(
 ):
     """List all users"""
     query = db.query(User)
+    if current_user.organization_id:
+        query = query.filter(User.organization_id == current_user.organization_id)
     if role:
         query = query.filter(User.role == role)
     
@@ -103,14 +115,17 @@ async def lookup_customer(
     db: Session = Depends(get_db)
 ):
     """Lookup customer details and vehicles by mobile number"""
-    customer = db.query(User).filter(
+    query = db.query(User).filter(
         User.mobile == mobile,
         User.role == UserRole.CUSTOMER
-    ).first()
-    
+    )
+    if current_user.organization_id:
+        query = query.filter(User.organization_id == current_user.organization_id)
+    customer = query.first()
+
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
-    
+
     vehicles = db.query(Vehicle).filter(Vehicle.owner_id == customer.id).all()
     
     return {
@@ -148,6 +163,7 @@ async def quick_register_vehicle(
             full_name=data.customer_name,
             mobile=data.mobile,
             role=UserRole.CUSTOMER,
+            organization_id=current_user.organization_id,
             is_active=True,
             is_verified=True
         )
@@ -163,6 +179,7 @@ async def quick_register_vehicle(
         model = parts[1]
 
     vehicle = Vehicle(
+        organization_id=current_user.organization_id,
         owner_id=customer.id,
         plate_number=data.plate_number,
         make=make,
@@ -213,6 +230,7 @@ async def create_staff(
         email=data.email,
         role=data.role,
         branch_id=data.branch_id,
+        organization_id=current_user.organization_id,
         is_active=True,
         is_verified=True
     )
@@ -240,6 +258,7 @@ async def create_vendor(
         role=UserRole.VENDOR,
         company_name=data.company_name,
         trade_license=data.trade_license,
+        organization_id=current_user.organization_id,
         is_active=True,
         is_verified=True
     )
@@ -256,7 +275,10 @@ async def toggle_user_status(
     db: Session = Depends(get_db)
 ):
     """Toggle user active status"""
-    user = db.query(User).filter(User.id == user_id).first()
+    query = db.query(User).filter(User.id == user_id)
+    if current_user.organization_id:
+        query = query.filter(User.organization_id == current_user.organization_id)
+    user = query.first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     

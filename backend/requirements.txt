@@ -23,6 +23,15 @@ celery==5.3.6
 boto3==1.34.25
 python-magic==0.4.27
 
+# Payments
+stripe==8.4.0
+
+# WhatsApp / SMS
+twilio==9.0.4
+
+# Push Notifications
+firebase-admin==6.4.0
+
 # Utils
 phonenumbers==8.13.27
 python-dateutil==2.8.2

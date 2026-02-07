@@ -25,17 +25,21 @@ from app.services.notification_service import NotificationService
 
 class JobCardService:
     """Service for job card management"""
-    
-    def __init__(self, db: Session):
+
+    def __init__(self, db: Session, org_id: UUID = None):
         self.db = db
-        self.notification_service = NotificationService(db)
+        self.org_id = org_id
+        self.notification_service = NotificationService(db, org_id=org_id)
     
     def _generate_job_number(self) -> str:
         """Generate unique job number"""
         today = datetime.now().strftime("%Y%m%d")
-        count = self.db.query(JobCard).filter(
+        query = self.db.query(JobCard).filter(
             JobCard.job_number.like(f"JC{today}%")
-        ).count()
+        )
+        if self.org_id:
+            query = query.filter(JobCard.organization_id == self.org_id)
+        count = query.count()
         return f"JC{today}{count + 1:04d}"
     
     def create_booking(self, customer_id: UUID, data: BookingRequest) -> JobCard:
@@ -66,6 +70,7 @@ class JobCardService:
         
         # Create job card
         job_card = JobCard(
+            organization_id=self.org_id,
             job_number=self._generate_job_number(),
             customer_id=customer_id,
             vehicle_id=data.vehicle_id,
@@ -96,7 +101,7 @@ class JobCardService:
     
     def get_job_card(self, job_id: UUID, user: User) -> JobCard:
         """Get job card by ID with access control"""
-        job = self.db.query(JobCard).options(
+        query = self.db.query(JobCard).options(
             joinedload(JobCard.customer),
             joinedload(JobCard.vehicle),
             joinedload(JobCard.branch),
@@ -104,7 +109,10 @@ class JobCardService:
             joinedload(JobCard.diagnosis),
             joinedload(JobCard.estimate_items),
             joinedload(JobCard.updates)
-        ).filter(JobCard.id == job_id).first()
+        ).filter(JobCard.id == job_id)
+        if self.org_id:
+            query = query.filter(JobCard.organization_id == self.org_id)
+        job = query.first()
         
         if not job:
             raise HTTPException(
@@ -148,7 +156,11 @@ class JobCardService:
             joinedload(JobCard.vehicle),
             joinedload(JobCard.branch)
         )
-        
+
+        # Org-scoped filtering
+        if self.org_id:
+            query = query.filter(JobCard.organization_id == self.org_id)
+
         # Role-based filtering
         if user.role == UserRole.CUSTOMER:
             query = query.filter(JobCard.customer_id == user.id)

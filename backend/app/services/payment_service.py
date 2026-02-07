@@ -23,25 +23,32 @@ from app.core.security import generate_token
 
 class PaymentService:
     """Service for payment management"""
-    
-    def __init__(self, db: Session):
+
+    def __init__(self, db: Session, org_id: UUID = None):
         self.db = db
-        self.notification_service = NotificationService(db)
+        self.org_id = org_id
+        self.notification_service = NotificationService(db, org_id=org_id)
     
     def _generate_payment_number(self) -> str:
         """Generate unique payment number"""
         today = datetime.now().strftime("%Y%m%d")
-        count = self.db.query(Payment).filter(
+        query = self.db.query(Payment).filter(
             Payment.payment_number.like(f"PAY{today}%")
-        ).count()
+        )
+        if self.org_id:
+            query = query.filter(Payment.organization_id == self.org_id)
+        count = query.count()
         return f"PAY{today}{count + 1:04d}"
-    
+
     def _generate_invoice_number(self) -> str:
         """Generate unique invoice number"""
         today = datetime.now().strftime("%Y%m%d")
-        count = self.db.query(Invoice).filter(
+        query = self.db.query(Invoice).filter(
             Invoice.invoice_number.like(f"INV{today}%")
-        ).count()
+        )
+        if self.org_id:
+            query = query.filter(Invoice.organization_id == self.org_id)
+        count = query.count()
         return f"INV{today}{count + 1:04d}"
     
     def create_payment_link(
@@ -70,6 +77,7 @@ class PaymentService:
         
         # Create payment record
         payment = Payment(
+            organization_id=self.org_id,
             job_card_id=job_id,
             payment_number=self._generate_payment_number(),
             payment_type=payment_type,
@@ -110,6 +118,7 @@ class PaymentService:
         
         # Create payment record
         payment = Payment(
+            organization_id=self.org_id,
             job_card_id=job_id,
             payment_number=self._generate_payment_number(),
             payment_type=data.payment_type,
@@ -228,6 +237,7 @@ class PaymentService:
         total_amount = subtotal + tax_amount - data.discount_amount
         
         invoice = Invoice(
+            organization_id=self.org_id,
             job_card_id=job_id,
             invoice_number=self._generate_invoice_number(),
             invoice_type=data.invoice_type,
@@ -277,6 +287,7 @@ class PaymentService:
             })
         
         invoice = Invoice(
+            organization_id=self.org_id,
             job_card_id=job_id,
             invoice_number=self._generate_invoice_number(),
             invoice_type="final",

@@ -3,7 +3,7 @@ User Model
 """
 import enum
 from datetime import datetime
-from sqlalchemy import Column, String, Boolean, DateTime, Enum, Text, ForeignKey
+from sqlalchemy import Column, String, Boolean, DateTime, Enum, Text, ForeignKey, Index
 from app.core.database import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -45,6 +45,9 @@ class User(Base):
     emirates_id = Column(String(50), nullable=True)
     emirates_id_url = Column(String(500), nullable=True)
     
+    # Organization (tenant)
+    organization_id = Column(UUID, ForeignKey("organizations.id"), nullable=True)
+
     # For staff - branch assignment
     branch_id = Column(UUID, ForeignKey("branches.id"), nullable=True)
     
@@ -59,6 +62,7 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
     
     # Relationships
+    organization = relationship("Organization", foreign_keys=[organization_id])
     vehicles = relationship("Vehicle", back_populates="owner", cascade="all, delete-orphan")
     branch = relationship("Branch", back_populates="staff")
     otp_codes = relationship("OTPCode", back_populates="user", cascade="all, delete-orphan")

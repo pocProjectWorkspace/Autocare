@@ -32,7 +32,7 @@ async def create_vehicle(
     db: Session = Depends(get_db)
 ):
     """Add a new vehicle"""
-    vehicle = Vehicle(owner_id=current_user.id, **data.model_dump())
+    vehicle = Vehicle(organization_id=current_user.organization_id, owner_id=current_user.id, **data.model_dump())
     db.add(vehicle)
     db.commit()
     db.refresh(vehicle)

@@ -31,6 +31,7 @@ class WorkOrder(Base):
     __tablename__ = "work_orders"
     
     id = Column(UUID, primary_key=True, default=uuid.uuid4)
+    organization_id = Column(UUID, ForeignKey("organizations.id"), nullable=True)
     job_card_id = Column(UUID, ForeignKey("job_cards.id"), nullable=False)
     technician_id = Column(UUID, ForeignKey("users.id"), nullable=True)
     
@@ -46,6 +47,7 @@ class WorkOrder(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
+    organization = relationship("Organization", foreign_keys=[organization_id])
     job_card = relationship("JobCard", back_populates="work_orders")
     technician = relationship("User")
     tasks = relationship("WorkOrderTask", back_populates="work_order", cascade="all, delete-orphan")

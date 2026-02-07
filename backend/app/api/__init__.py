@@ -16,6 +16,8 @@ from app.api.vendor import router as vendor_router
 from app.api.reports import router as reports_router
 from app.api.websocket import router as websocket_router
 from app.api.admin_users import router as admin_users_router
+from app.api.organization import router as org_router
+from app.api.webhooks import router as webhooks_router
 
 router = APIRouter()
 
@@ -52,6 +54,12 @@ router.include_router(vendor_router, prefix="/vendor")
 
 # Reports & Analytics
 router.include_router(reports_router, prefix="/reports")
+
+# Organization
+router.include_router(org_router)
+
+# Webhooks (external callbacks)
+router.include_router(webhooks_router)
 
 # WebSocket for Real-time
 router.include_router(websocket_router)

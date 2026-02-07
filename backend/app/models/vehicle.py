@@ -15,6 +15,7 @@ class Vehicle(Base):
     __tablename__ = "vehicles"
     
     id = Column(UUID, primary_key=True, default=uuid.uuid4)
+    organization_id = Column(UUID, ForeignKey("organizations.id"), nullable=True)
     owner_id = Column(UUID, ForeignKey("users.id"), nullable=False)
     
     # Vehicle details
@@ -55,6 +56,7 @@ class Vehicle(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
+    organization = relationship("Organization", foreign_keys=[organization_id])
     owner = relationship("User", back_populates="vehicles")
     job_cards = relationship("JobCard", back_populates="vehicle")
     

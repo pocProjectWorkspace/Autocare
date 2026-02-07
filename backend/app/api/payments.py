@@ -24,7 +24,7 @@ async def get_job_payments(
     db: Session = Depends(get_db)
 ):
     """Get payments for a job"""
-    service = PaymentService(db)
+    service = PaymentService(db, org_id=current_user.organization_id)
     return service.get_job_payments(job_id, current_user)
 
 
@@ -36,7 +36,7 @@ async def create_payment_link(
     db: Session = Depends(get_db)
 ):
     """Generate payment link (Staff only)"""
-    service = PaymentService(db)
+    service = PaymentService(db, org_id=current_user.organization_id)
     return service.create_payment_link(job_id, current_user, data)
 
 
@@ -48,7 +48,7 @@ async def record_cash_payment(
     db: Session = Depends(get_db)
 ):
     """Record cash/manual payment (Staff only)"""
-    service = PaymentService(db)
+    service = PaymentService(db, org_id=current_user.organization_id)
     return service.record_cash_payment(job_id, current_user, data)
 
 
@@ -71,5 +71,5 @@ async def generate_invoice(
     db: Session = Depends(get_db)
 ):
     """Generate final invoice (Staff only)"""
-    service = PaymentService(db)
+    service = PaymentService(db, org_id=current_user.organization_id)
     return service.generate_final_invoice(job_id, current_user)

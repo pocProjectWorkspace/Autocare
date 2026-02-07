@@ -47,7 +47,7 @@ async def create_branch(
     if existing:
         raise HTTPException(status_code=400, detail="Branch code already exists")
     
-    branch = Branch(**data.model_dump())
+    branch = Branch(organization_id=current_user.organization_id, **data.model_dump())
     db.add(branch)
     db.commit()
     db.refresh(branch)

@@ -14,6 +14,7 @@ from app.core.database import Base
 class JobStatus(str, enum.Enum):
     REQUESTED = "requested"
     SCHEDULED = "scheduled"
+    EN_ROUTE_PICKUP = "en_route_pickup"
     VEHICLE_PICKED = "vehicle_picked"
     IN_INTAKE = "in_intake"
     DIAGNOSED = "diagnosed"
@@ -65,8 +66,9 @@ class JobCard(Base):
     __tablename__ = "job_cards"
     
     id = Column(UUID, primary_key=True, default=uuid.uuid4)
+    organization_id = Column(UUID, ForeignKey("organizations.id"), nullable=True)
     job_number = Column(String(20), unique=True, nullable=False, index=True)
-    
+
     # Relationships
     customer_id = Column(UUID, ForeignKey("users.id"), nullable=False)
     vehicle_id = Column(UUID, ForeignKey("vehicles.id"), nullable=False)
@@ -74,6 +76,8 @@ class JobCard(Base):
     service_advisor_id = Column(UUID, ForeignKey("users.id"), nullable=True)
     technician_id = Column(UUID, ForeignKey("users.id"), nullable=True)
     driver_id = Column(UUID, ForeignKey("users.id"), nullable=True)
+    pickup_driver_id = Column(UUID, ForeignKey("users.id"), nullable=True)
+    delivery_driver_id = Column(UUID, ForeignKey("users.id"), nullable=True)
     
     # Service Info
     service_type = Column(Enum(ServiceType), nullable=False)
@@ -87,12 +91,19 @@ class JobCard(Base):
     pickup_longitude = Column(Float, nullable=True)
     preferred_pickup_time = Column(DateTime, nullable=True)
     actual_pickup_time = Column(DateTime, nullable=True)
-    
+    vehicle_picked_at = Column(DateTime, nullable=True)
+
     delivery_type = Column(Enum(DeliveryType), default=DeliveryType.DROP_OFF)
     delivery_address = Column(String(500), nullable=True)
     preferred_delivery_time = Column(DateTime, nullable=True)
     actual_delivery_time = Column(DateTime, nullable=True)
-    
+    delivered_at = Column(DateTime, nullable=True)
+
+    # Driver live location
+    driver_latitude = Column(Float, nullable=True)
+    driver_longitude = Column(Float, nullable=True)
+    location_updated_at = Column(DateTime, nullable=True)
+
     # Timing
     scheduled_date = Column(DateTime, nullable=True)
     estimated_completion_days = Column(Integer, nullable=True)
@@ -128,13 +139,16 @@ class JobCard(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
+    organization = relationship("Organization", foreign_keys=[organization_id])
     customer = relationship("User", foreign_keys=[customer_id])
     vehicle = relationship("Vehicle", back_populates="job_cards")
     branch = relationship("Branch", back_populates="job_cards")
     service_advisor = relationship("User", foreign_keys=[service_advisor_id])
     technician = relationship("User", foreign_keys=[technician_id])
     driver = relationship("User", foreign_keys=[driver_id])
-    
+    pickup_driver = relationship("User", foreign_keys=[pickup_driver_id])
+    delivery_driver = relationship("User", foreign_keys=[delivery_driver_id])
+
     intake = relationship("VehicleIntake", back_populates="job_card", uselist=False)
     diagnosis = relationship("Diagnosis", back_populates="job_card", uselist=False)
     estimate_items = relationship("EstimateItem", back_populates="job_card")

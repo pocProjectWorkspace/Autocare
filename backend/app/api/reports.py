@@ -23,8 +23,9 @@ async def get_dashboard_stats(
     current_user: User = Depends(require_role(["admin", "service_advisor"]))
 ):
     """Get dashboard statistics"""
+    org_id = current_user.organization_id
     now = datetime.utcnow()
-    
+
     if period == "today":
         start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
     elif period == "week":
@@ -33,8 +34,10 @@ async def get_dashboard_stats(
         start_date = now - timedelta(days=30)
     else:
         start_date = now - timedelta(days=365)
-    
+
     query = db.query(JobCard).filter(JobCard.created_at >= start_date)
+    if org_id:
+        query = query.filter(JobCard.organization_id == org_id)
     if branch_id:
         query = query.filter(JobCard.branch_id == branch_id)
     
@@ -80,7 +83,9 @@ async def get_jobs_by_status(
         JobCard.status,
         func.count(JobCard.id).label('count')
     ).group_by(JobCard.status)
-    
+
+    if current_user.organization_id:
+        query = query.filter(JobCard.organization_id == current_user.organization_id)
     if branch_id:
         query = query.filter(JobCard.branch_id == branch_id)
     
@@ -97,15 +102,18 @@ async def get_revenue_trend(
 ):
     """Get daily revenue trend"""
     start_date = datetime.utcnow() - timedelta(days=days)
-    
+
     query = db.query(
         func.date(Payment.paid_at).label('date'),
         func.sum(Payment.amount).label('revenue')
     ).filter(
         Payment.paid_at >= start_date,
         Payment.status == 'completed'
-    ).group_by(func.date(Payment.paid_at)).order_by('date')
-    
+    )
+    if current_user.organization_id:
+        query = query.filter(Payment.organization_id == current_user.organization_id)
+    query = query.group_by(func.date(Payment.paid_at)).order_by('date')
+
     if branch_id:
         query = query.join(JobCard).filter(JobCard.branch_id == branch_id)
     
@@ -127,13 +135,16 @@ async def get_service_type_breakdown(
     else:
         start_date = datetime.utcnow() - timedelta(days=365)
     
-    results = db.query(
+    query = db.query(
         JobCard.service_type,
         func.count(JobCard.id).label('count'),
         func.sum(JobCard.grand_total).label('revenue')
     ).filter(
         JobCard.created_at >= start_date
-    ).group_by(JobCard.service_type).all()
+    )
+    if current_user.organization_id:
+        query = query.filter(JobCard.organization_id == current_user.organization_id)
+    results = query.group_by(JobCard.service_type).all()
     
     return [{
         "service_type": r.service_type,
@@ -156,14 +167,17 @@ async def get_branch_performance(
     else:
         start_date = datetime.utcnow() - timedelta(days=365)
     
-    results = db.query(
+    query = db.query(
         Branch.name,
         func.count(JobCard.id).label('job_count'),
         func.sum(JobCard.grand_total).label('revenue'),
         func.avg(JobCard.grand_total).label('avg_ticket')
     ).join(JobCard, Branch.id == JobCard.branch_id).filter(
         JobCard.created_at >= start_date
-    ).group_by(Branch.id, Branch.name).all()
+    )
+    if current_user.organization_id:
+        query = query.filter(JobCard.organization_id == current_user.organization_id)
+    results = query.group_by(Branch.id, Branch.name).all()
     
     return [{
         "branch_name": r.name,
@@ -179,25 +193,33 @@ async def get_customer_insights(
     current_user: User = Depends(require_role(["admin"]))
 ):
     """Get customer analytics"""
-    total_customers = db.query(User).filter(User.role == 'customer').count()
-    
+    org_id = current_user.organization_id
+
+    def user_q():
+        q = db.query(User).filter(User.role == 'customer')
+        if org_id:
+            q = q.filter(User.organization_id == org_id)
+        return q
+
+    total_customers = user_q().count()
+
     # Top customers by spend
-    top_customers = db.query(
+    top_q = db.query(
         User.full_name,
         func.count(JobCard.id).label('job_count'),
         func.sum(JobCard.amount_paid).label('total_spend')
     ).join(JobCard, User.id == JobCard.customer_id).filter(
         User.role == 'customer'
-    ).group_by(User.id, User.full_name).order_by(
+    )
+    if org_id:
+        top_q = top_q.filter(User.organization_id == org_id)
+    top_customers = top_q.group_by(User.id, User.full_name).order_by(
         func.sum(JobCard.amount_paid).desc()
     ).limit(10).all()
-    
+
     # New customers this month
     month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0)
-    new_customers = db.query(User).filter(
-        User.role == 'customer',
-        User.created_at >= month_start
-    ).count()
+    new_customers = user_q().filter(User.created_at >= month_start).count()
     
     return {
         "total_customers": total_customers,
@@ -220,7 +242,9 @@ async def export_jobs_csv(
 ):
     """Export jobs to CSV"""
     query = db.query(JobCard)
-    
+    if current_user.organization_id:
+        query = query.filter(JobCard.organization_id == current_user.organization_id)
+
     if start_date:
         query = query.filter(JobCard.created_at >= start_date)
     if end_date:

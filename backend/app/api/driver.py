@@ -3,13 +3,13 @@ Driver API Routes - Pickup & Delivery Management
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, func
 from datetime import datetime, date
 from typing import Optional
 from pydantic import BaseModel
 
 from app.core.deps import get_db, get_current_user, require_role
-from app.models import User, JobCard
+from app.models import User, JobCard, JobStatus, Payment, PaymentStatus, PaymentMethod
 from app.services.notification_service import NotificationService
 
 router = APIRouter(tags=["Driver"])
@@ -30,7 +30,7 @@ async def get_driver_pickups(
     """Get assigned pickups for driver"""
     query = db.query(JobCard).filter(
         JobCard.intake_type == 'pickup',
-        JobCard.status.in_(['scheduled', 'en_route_pickup', 'vehicle_picked']),
+        JobCard.status.in_([JobStatus.SCHEDULED, JobStatus.EN_ROUTE_PICKUP, JobStatus.VEHICLE_PICKED]),
         or_(
             JobCard.pickup_driver_id == current_user.id,
             JobCard.pickup_driver_id.is_(None)  # Unassigned
@@ -68,7 +68,7 @@ async def get_driver_deliveries(
 ):
     """Get assigned deliveries for driver"""
     query = db.query(JobCard).filter(
-        JobCard.status.in_(['ready', 'out_for_delivery']),
+        JobCard.status.in_([JobStatus.READY, JobStatus.OUT_FOR_DELIVERY]),
         or_(
             JobCard.delivery_driver_id == current_user.id,
             JobCard.delivery_driver_id.is_(None)
@@ -77,7 +77,7 @@ async def get_driver_deliveries(
     
     if date_filter:
         query = query.filter(
-            func.date(JobCard.delivery_date) == date_filter
+            func.date(JobCard.preferred_delivery_time) == date_filter
         )
     
     jobs = query.order_by(JobCard.updated_at.desc()).all()
@@ -91,7 +91,7 @@ async def get_driver_deliveries(
             "vehicle_plate": j.vehicle.plate_number if j.vehicle else None,
             "vehicle_name": f"{j.vehicle.make} {j.vehicle.model}" if j.vehicle else None,
             "delivery_address": j.delivery_address or j.pickup_address,
-            "delivery_time": j.delivery_date.isoformat() if j.delivery_date else None,
+            "delivery_time": j.preferred_delivery_time.isoformat() if j.preferred_delivery_time else None,
             "status": j.status,
             "balance_due": float(j.balance_due or 0),
             "branch_name": j.branch.name if j.branch else None,
@@ -110,22 +110,19 @@ async def start_pickup(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    if job.status != 'scheduled':
+    if job.status != JobStatus.SCHEDULED:
         raise HTTPException(status_code=400, detail="Invalid job status for pickup")
-    
-    job.status = 'en_route_pickup'
+
+    job.status = JobStatus.EN_ROUTE_PICKUP
     job.pickup_driver_id = current_user.id
     job.updated_at = datetime.utcnow()
     db.commit()
     
     # Notify customer
-    NotificationService.send_notification(
-        db, job.customer_id,
-        "Driver En Route",
-        f"Your driver is on the way for pickup. Job: {job.job_number}",
-        "job_update", str(job.id)
-    )
-    
+    notification_svc = NotificationService(db, org_id=current_user.organization_id)
+    notification_svc.notify_job_update(job, "Driver En Route",
+        f"Your driver is on the way for pickup. Job: {job.job_number}")
+
     return {"message": "Pickup started", "status": job.status}
 
 
@@ -140,23 +137,20 @@ async def confirm_pickup(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    if job.status not in ['scheduled', 'en_route_pickup']:
+    if job.status not in [JobStatus.SCHEDULED, JobStatus.EN_ROUTE_PICKUP]:
         raise HTTPException(status_code=400, detail="Invalid job status")
-    
-    job.status = 'vehicle_picked'
+
+    job.status = JobStatus.VEHICLE_PICKED
     job.pickup_driver_id = current_user.id
     job.vehicle_picked_at = datetime.utcnow()
     job.updated_at = datetime.utcnow()
     db.commit()
     
     # Notify customer and branch
-    NotificationService.send_notification(
-        db, job.customer_id,
-        "Vehicle Picked Up",
-        f"Your vehicle has been picked up. Job: {job.job_number}",
-        "job_update", str(job.id)
-    )
-    
+    notification_svc = NotificationService(db, org_id=current_user.organization_id)
+    notification_svc.notify_job_update(job, "Vehicle Picked Up",
+        f"Your vehicle has been picked up. Job: {job.job_number}")
+
     return {"message": "Pickup confirmed", "status": job.status}
 
 
@@ -171,22 +165,19 @@ async def start_delivery(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    if job.status != 'ready':
+    if job.status != JobStatus.READY:
         raise HTTPException(status_code=400, detail="Job not ready for delivery")
-    
-    job.status = 'out_for_delivery'
+
+    job.status = JobStatus.OUT_FOR_DELIVERY
     job.delivery_driver_id = current_user.id
     job.updated_at = datetime.utcnow()
     db.commit()
     
     # Notify customer
-    NotificationService.send_notification(
-        db, job.customer_id,
-        "Vehicle Out for Delivery",
-        f"Your vehicle is on its way! Job: {job.job_number}",
-        "job_update", str(job.id)
-    )
-    
+    notification_svc = NotificationService(db, org_id=current_user.organization_id)
+    notification_svc.notify_job_update(job, "Vehicle Out for Delivery",
+        f"Your vehicle is on its way! Job: {job.job_number}")
+
     return {"message": "Delivery started", "status": job.status}
 
 
@@ -202,22 +193,23 @@ async def confirm_delivery(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    if job.status != 'out_for_delivery':
+    if job.status != JobStatus.OUT_FOR_DELIVERY:
         raise HTTPException(status_code=400, detail="Invalid job status")
-    
-    job.status = 'delivered'
+
+    job.status = JobStatus.DELIVERED
     job.delivery_driver_id = current_user.id
     job.delivered_at = datetime.utcnow()
     job.updated_at = datetime.utcnow()
     
     # Record cash if collected
     if cash_collected and cash_collected > 0:
-        from app.models import Payment
         payment = Payment(
+            organization_id=current_user.organization_id,
             job_card_id=job.id,
+            user_id=job.customer_id,
             amount=cash_collected,
-            payment_method='cash',
-            status='completed',
+            payment_method=PaymentMethod.CASH,
+            status=PaymentStatus.COMPLETED,
             paid_at=datetime.utcnow(),
             collected_by_id=current_user.id,
             notes="Collected on delivery"
@@ -229,13 +221,10 @@ async def confirm_delivery(
     db.commit()
     
     # Notify customer
-    NotificationService.send_notification(
-        db, job.customer_id,
-        "Vehicle Delivered",
-        f"Your vehicle has been delivered! Please rate your experience. Job: {job.job_number}",
-        "job_update", str(job.id)
-    )
-    
+    notification_svc = NotificationService(db, org_id=current_user.organization_id)
+    notification_svc.notify_job_update(job, "Vehicle Delivered",
+        f"Your vehicle has been delivered! Please rate your experience. Job: {job.job_number}")
+
     return {"message": "Delivery confirmed", "status": job.status}
 
 
@@ -273,7 +262,7 @@ async def get_driver_history(
             JobCard.pickup_driver_id == current_user.id,
             JobCard.delivery_driver_id == current_user.id
         ),
-        JobCard.status.in_(['vehicle_picked', 'delivered', 'closed'])
+        JobCard.status.in_([JobStatus.VEHICLE_PICKED, JobStatus.DELIVERED, JobStatus.CLOSED])
     ).order_by(JobCard.updated_at.desc())
     
     total = query.count()

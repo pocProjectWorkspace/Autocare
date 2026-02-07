@@ -22,17 +22,21 @@ from app.core.config import settings
 
 class RFQService:
     """Service for RFQ and vendor quote management"""
-    
-    def __init__(self, db: Session):
+
+    def __init__(self, db: Session, org_id: UUID = None):
         self.db = db
-        self.notification_service = NotificationService(db)
+        self.org_id = org_id
+        self.notification_service = NotificationService(db, org_id=org_id)
     
     def _generate_rfq_number(self) -> str:
         """Generate unique RFQ number"""
         today = datetime.now().strftime("%Y%m%d")
-        count = self.db.query(RFQ).filter(
+        query = self.db.query(RFQ).filter(
             RFQ.rfq_number.like(f"RFQ{today}%")
-        ).count()
+        )
+        if self.org_id:
+            query = query.filter(RFQ.organization_id == self.org_id)
+        count = query.count()
         return f"RFQ{today}{count + 1:04d}"
     
     def create_rfq(
@@ -58,6 +62,7 @@ class RFQService:
         
         # Create RFQ
         rfq = RFQ(
+            organization_id=self.org_id,
             job_card_id=job_id,
             rfq_number=self._generate_rfq_number(),
             parts_list=[p.model_dump() for p in data.parts_list],
@@ -332,7 +337,10 @@ class RFQService:
         ).options(
             joinedload(RFQ.job_card).joinedload(JobCard.vehicle)
         )
-        
+
+        if self.org_id:
+            query = query.filter(RFQ.organization_id == self.org_id)
+
         if status_filter:
             query = query.filter(RFQ.status.in_(status_filter))
         

@@ -68,7 +68,9 @@ async def list_users(
 ):
     """List all staff users with filtering"""
     query = db.query(User).filter(User.role != "customer")
-    
+    if current_user.organization_id:
+        query = query.filter(User.organization_id == current_user.organization_id)
+
     if role:
         query = query.filter(User.role == role)
     if branch_id:
@@ -137,6 +139,7 @@ async def create_user(
         email=data.email,
         role=data.role,
         branch_id=data.branch_id,
+        organization_id=current_user.organization_id,
         is_active=True,
         is_verified=True  # Staff are pre-verified
     )
@@ -169,7 +172,10 @@ async def get_user(
     current_user: User = Depends(require_role(["admin"]))
 ):
     """Get user details"""
-    user = db.query(User).filter(User.id == user_id).first()
+    query = db.query(User).filter(User.id == user_id)
+    if current_user.organization_id:
+        query = query.filter(User.organization_id == current_user.organization_id)
+    user = query.first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -195,7 +201,10 @@ async def update_user(
     current_user: User = Depends(require_role(["admin"]))
 ):
     """Update user details"""
-    user = db.query(User).filter(User.id == user_id).first()
+    query = db.query(User).filter(User.id == user_id)
+    if current_user.organization_id:
+        query = query.filter(User.organization_id == current_user.organization_id)
+    user = query.first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -248,8 +257,11 @@ async def delete_user(
     """Delete/deactivate a user"""
     if str(current_user.id) == user_id:
         raise HTTPException(status_code=400, detail="Cannot delete your own account")
-    
-    user = db.query(User).filter(User.id == user_id).first()
+
+    query = db.query(User).filter(User.id == user_id)
+    if current_user.organization_id:
+        query = query.filter(User.organization_id == current_user.organization_id)
+    user = query.first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -268,7 +280,10 @@ async def reset_user_access(
     current_user: User = Depends(require_role(["admin"]))
 ):
     """Reset user's OTP/access - send new login OTP"""
-    user = db.query(User).filter(User.id == user_id).first()
+    query = db.query(User).filter(User.id == user_id)
+    if current_user.organization_id:
+        query = query.filter(User.organization_id == current_user.organization_id)
+    user = query.first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -286,18 +301,29 @@ async def get_user_stats(
     current_user: User = Depends(require_role(["admin"]))
 ):
     """Get user statistics summary"""
-    total_staff = db.query(User).filter(User.role != "customer").count()
-    total_customers = db.query(User).filter(User.role == "customer").count()
-    active_staff = db.query(User).filter(
+    org_id = current_user.organization_id
+
+    def base_q():
+        q = db.query(User)
+        if org_id:
+            q = q.filter(User.organization_id == org_id)
+        return q
+
+    total_staff = base_q().filter(User.role != "customer").count()
+    total_customers = base_q().filter(User.role == "customer").count()
+    active_staff = base_q().filter(
         User.role != "customer",
         User.is_active == True
     ).count()
-    
+
     # Count by role
-    role_counts = db.query(
+    role_q = db.query(
         User.role,
         func.count(User.id).label("count")
-    ).group_by(User.role).all()
+    )
+    if org_id:
+        role_q = role_q.filter(User.organization_id == org_id)
+    role_counts = role_q.group_by(User.role).all()
     
     return {
         "total_staff": total_staff,
@@ -331,6 +357,7 @@ async def bulk_create_users(
                 email=user_data.email,
                 role=user_data.role,
                 branch_id=user_data.branch_id,
+                organization_id=current_user.organization_id,
                 is_active=True,
                 is_verified=True
             )

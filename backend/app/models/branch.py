@@ -2,7 +2,7 @@
 Branch/Service Location Model
 """
 from datetime import datetime, time
-from sqlalchemy import Column, String, Boolean, DateTime, Text, Float, Time, JSON, Integer
+from sqlalchemy import Column, String, Boolean, DateTime, Text, Float, Time, JSON, Integer, ForeignKey
 from app.core.database import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -15,7 +15,10 @@ class Branch(Base):
     __tablename__ = "branches"
     
     id = Column(UUID, primary_key=True, default=uuid.uuid4)
-    
+
+    # Organization (tenant)
+    organization_id = Column(UUID, ForeignKey("organizations.id"), nullable=True)
+
     # Basic info
     name = Column(String(255), nullable=False)
     code = Column(String(20), unique=True, nullable=False)
@@ -53,6 +56,7 @@ class Branch(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
+    organization = relationship("Organization", foreign_keys=[organization_id])
     staff = relationship("User", back_populates="branch")
     job_cards = relationship("JobCard", back_populates="branch")
     

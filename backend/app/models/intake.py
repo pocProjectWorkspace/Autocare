@@ -16,27 +16,44 @@ class VehicleIntake(Base):
     
     id = Column(UUID, primary_key=True, default=uuid.uuid4)
     job_card_id = Column(UUID, ForeignKey("job_cards.id"), nullable=False, unique=True)
-    advisor_id = Column(UUID, ForeignKey("users.id"), nullable=False)
-    
+    performed_by_id = Column(UUID, ForeignKey("users.id"), nullable=False)
+
     # Meter readings
     fuel_level = Column(String(20), nullable=True)  # e.g. "1/4", "Full"
-    mileage = Column(Integer, nullable=True)
-    
+    odometer_reading = Column(Integer, nullable=True)
+
     # Checklist
     has_spare_tyre = Column(Boolean, default=True)
     has_jack = Column(Boolean, default=True)
     has_service_book = Column(Boolean, default=True)
-    
-    # Exterior damage mapping
-    exterior_damage = Column(JSON, nullable=True)  # Map of parts and damage types
-    media_urls = Column(JSON, default=list)  # Photos of vehicle during intake
-    
+    toolkit = Column(Boolean, default=False)
+    floor_mats = Column(Boolean, default=False)
+    first_aid_kit = Column(Boolean, default=False)
+    fire_extinguisher = Column(Boolean, default=False)
+
+    # Exterior
+    exterior_damages = Column(JSON, nullable=True)  # Map of parts and damage types
+    exterior_photos = Column(JSON, default=list)
+    exterior_notes = Column(Text, nullable=True)
+
+    # Interior
+    interior_photos = Column(JSON, default=list)
+    interior_condition = Column(JSON, nullable=True)
+    interior_notes = Column(Text, nullable=True)
+
+    # Items in vehicle
+    items_in_vehicle = Column(JSON, default=list)
+    items_photos = Column(JSON, default=list)
+
+    media_urls = Column(JSON, default=list)  # General photos of vehicle during intake
+    customer_acknowledged = Column(Boolean, default=False)
+
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     job_card = relationship("JobCard", back_populates="intake")
-    advisor = relationship("User")
+    performed_by = relationship("User")
 
 
 class Diagnosis(Base):
@@ -46,14 +63,25 @@ class Diagnosis(Base):
     id = Column(UUID, primary_key=True, default=uuid.uuid4)
     job_card_id = Column(UUID, ForeignKey("job_cards.id"), nullable=False, unique=True)
     technician_id = Column(UUID, ForeignKey("users.id"), nullable=False)
-    
-    technical_report = Column(Text, nullable=False)
+
+    findings = Column(Text, nullable=False)
     recommended_repairs = Column(Text, nullable=True)
-    media_urls = Column(JSON, default=list)
-    
+    severity = Column(String(20), nullable=True)  # low, medium, high, critical
+
+    # Media
+    diagnostic_photos = Column(JSON, default=list)
+    diagnostic_videos = Column(JSON, default=list)
+    media_urls = Column(JSON, default=list)  # General media
+
+    # Estimates
+    requires_parts = Column(Boolean, default=False)
+    estimated_labour_hours = Column(Float, nullable=True)
+    estimated_completion_days = Column(Integer, nullable=True)
+
     is_critical_safety_issue = Column(Boolean, default=False)
+    diagnosed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     job_card = relationship("JobCard", back_populates="diagnosis")
     technician = relationship("User")
