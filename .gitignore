@@ -43,3 +43,7 @@ mobile/dist/
 # Autonomous run logs & local Claude settings
 .claude/autonomy/runs/
 .claude/settings.local.json
+
+# Design deliverables (kept out of repo — DESIGN.md is the source)
+AutoCare application flow design/
+AutoCare application flow design.zip
