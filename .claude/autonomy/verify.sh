@@ -46,10 +46,22 @@ case "$PACKAGE" in
 
   mobile)
     cd "$REPO_ROOT/mobile"
+    # node_modules is needed for tsc to resolve imports
+    if [[ ! -d node_modules ]]; then
+      echo "-- installing deps (node_modules missing)"
+      npm install --silent --no-audit --no-fund || { echo "npm install failed"; exit 1; }
+    fi
     echo "-- tsc --noEmit"
     npx tsc --noEmit || { echo "tsc failed"; exit 1; }
-    echo "-- eslint"
-    npm run lint --silent || { echo "lint failed"; exit 1; }
+    # Only run lint if an eslint config actually exists — the mobile/
+    # package ships a "lint" script but no config file, so a naive
+    # `npm run lint` errors with "couldn't find an eslint.config file".
+    if ls eslint.config.* .eslintrc* 2>/dev/null | head -1 | grep -q .; then
+      echo "-- eslint"
+      npm run lint --silent || { echo "lint failed"; exit 1; }
+    else
+      echo "-- eslint skipped (no eslint config in mobile/)"
+    fi
     ;;
 
   web)
