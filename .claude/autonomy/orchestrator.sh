@@ -106,13 +106,19 @@ call_agent() {
   echo ">>> [$agent] $logsuffix (budget: $(budget_left)s left)"
 
   # Headless invocation. --print exits after one turn; the subagent
-  # is invoked via the /agent directive at the start of the prompt.
-  timeout "$PER_CALL_TIMEOUT" claude \
-    --print \
-    --allowedTools "$tools" \
-    --output-format text \
-    "Use the $agent subagent. $prompt" \
-    > "$logfile" 2>&1
+  # is invoked via the "Use the X subagent" directive at the start.
+  # Notes:
+  # - Wrap in `bash -c` so Windows npm shims (`.CMD`) resolve; plain
+  #   `timeout ... claude ...` execs claude directly and fails with 127.
+  # - Pipe the prompt via stdin (not as a positional arg): the CLI's
+  #   `--allowedTools <tools...>` is variadic and swallows trailing
+  #   positional args as more tool names, so the prompt never lands.
+  printf '%s' "Use the $agent subagent. $prompt" | \
+    timeout "$PER_CALL_TIMEOUT" bash -c 'claude "$@"' _ \
+      --print \
+      --allowedTools $tools \
+      --output-format text \
+      > "$logfile" 2>&1
   local rc=$?
 
   if [[ $rc -eq 124 ]]; then
@@ -162,8 +168,9 @@ for i in "${!TASK_HEADINGS[@]}"; do
   START_LINE="${TASK_HEADINGS[$i]}"
   END_LINE=$([[ $((i + 1)) -lt $TOTAL ]] && echo "$((${TASK_HEADINGS[$((i + 1))]} - 1))" || wc -l < "$MODULES_FILE")
   TASK_SPEC="$(sed -n "${START_LINE},${END_LINE}p" "$MODULES_FILE")"
-  # Try to sniff the package from the spec (first "Package:" line)
-  PACKAGE="$(echo "$TASK_SPEC" | grep -m1 -oE 'Package: *(backend|mobile|web)' | awk '{print $2}')"
+  # Sniff the package from the spec — strip markdown bold first so we match
+  # `**Package:** mobile` as well as `Package: mobile`.
+  PACKAGE="$(echo "$TASK_SPEC" | sed 's/\*//g' | grep -m1 -oiE 'Package:[[:space:]]*(backend|mobile|web)' | awk '{print $NF}' | tr '[:upper:]' '[:lower:]')"
   PACKAGE="${PACKAGE:-backend}"
 
   echo ""

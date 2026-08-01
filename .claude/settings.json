@@ -3,6 +3,7 @@
 
   "_comment_permissions": "Baseline allow-list. Interactive users can grant more. Autonomous runs must pass --allowedTools explicitly rather than relying on this.",
   "permissions": {
+	"defaultMode": "acceptEdits",
     "allow": [
       "Bash(git status:*)",
       "Bash(git diff:*)",
