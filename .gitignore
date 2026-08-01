@@ -39,3 +39,7 @@ backend/static/uploads/*
 mobile/ios/
 mobile/android/
 mobile/dist/
+
+# Autonomous run logs & local Claude settings
+.claude/autonomy/runs/
+.claude/settings.local.json

@@ -22,6 +22,9 @@ class BookingRequest(BaseModel):
     scheduled_date: Optional[datetime] = None
     customer_notes: Optional[str] = None
     customer_media_urls: Optional[List[str]] = []
+    # Staff (admin/service_advisor) can book on behalf of a customer.
+    # Ignored when the caller is the customer themselves.
+    customer_id: Optional[UUID] = None
 
 
 class JobCardCreate(BookingRequest):
@@ -179,6 +182,9 @@ class JobCardResponse(BaseModel):
     customer_rating: Optional[int] = None
     customer_feedback: Optional[str] = None
     
+    # Estimate items
+    estimate_items: List['EstimateItemResponse'] = []
+
     # Timeline
     updates: List['JobUpdateResponse'] = []
     

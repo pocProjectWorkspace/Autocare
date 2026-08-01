@@ -10,7 +10,11 @@ from datetime import datetime, timedelta
 
 from app.core.database import get_db
 from app.core.deps import require_admin
-from app.models import User, UserRole, Branch, JobCard, JobStatus, Payment, PaymentStatus, Vehicle
+from app.models import (
+    User, UserRole, Branch, JobCard, JobStatus,
+    Payment, PaymentStatus, PaymentMethod, Vehicle,
+    RFQ, RFQStatus, VendorQuote
+)
 from app.schemas.user import StaffCreate, VendorCreate, UserResponse
 from app.schemas.reports import DashboardStats, JobStatusSummary
 from app.schemas.vehicle import QuickVehicleRegister, VehicleResponse
@@ -285,3 +289,169 @@ async def toggle_user_status(
     user.is_active = not user.is_active
     db.commit()
     return {"id": str(user.id), "is_active": user.is_active}
+
+
+@router.get("/payments")
+async def list_payments(
+    status: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """List payments for admin dashboard"""
+    org_id = current_user.organization_id
+    today = datetime.utcnow().date()
+    month_start = today.replace(day=1)
+
+    query = db.query(Payment).join(
+        JobCard, Payment.job_card_id == JobCard.id
+    ).outerjoin(
+        User, Payment.user_id == User.id
+    )
+    if org_id:
+        query = query.filter(Payment.organization_id == org_id)
+    if status:
+        query = query.filter(Payment.status == PaymentStatus(status))
+
+    total = query.count()
+    offset = (page - 1) * page_size
+    payments = query.order_by(Payment.created_at.desc()).offset(offset).limit(page_size).all()
+
+    # Summary stats
+    summary_base = db.query(Payment)
+    if org_id:
+        summary_base = summary_base.filter(Payment.organization_id == org_id)
+
+    today_collection = summary_base.filter(
+        Payment.status == PaymentStatus.COMPLETED,
+        func.date(Payment.paid_at) == today
+    ).with_entities(func.sum(Payment.amount)).scalar() or 0
+
+    pending_count = summary_base.filter(
+        Payment.status == PaymentStatus.PENDING
+    ).count()
+
+    month_total = summary_base.filter(
+        Payment.status == PaymentStatus.COMPLETED,
+        Payment.paid_at >= datetime.combine(month_start, datetime.min.time())
+    ).with_entities(func.sum(Payment.amount)).scalar() or 0
+
+    return {
+        "payments": [{
+            "id": str(p.id),
+            "payment_number": p.payment_number or str(p.id)[:8],
+            "job_number": p.job_card.job_number if p.job_card else "-",
+            "customer_name": p.user.full_name if p.user else "-",
+            "amount": p.amount,
+            "currency": p.currency,
+            "payment_method": p.payment_method.value if p.payment_method else None,
+            "status": p.status.value,
+            "paid_at": p.paid_at.isoformat() if p.paid_at else None,
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+        } for p in payments],
+        "total": total,
+        "page": page,
+        "pages": (total + page_size - 1) // page_size,
+        "summary": {
+            "today_collection": float(today_collection),
+            "pending_count": pending_count,
+            "month_total": float(month_total),
+        }
+    }
+
+
+@router.get("/rfqs")
+async def list_rfqs(
+    status: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """List RFQs for admin dashboard"""
+    org_id = current_user.organization_id
+
+    query = db.query(RFQ).join(
+        JobCard, RFQ.job_card_id == JobCard.id
+    )
+    if org_id:
+        query = query.filter(RFQ.organization_id == org_id)
+    if status:
+        query = query.filter(RFQ.status == RFQStatus(status))
+
+    total = query.count()
+    offset = (page - 1) * page_size
+    rfqs = query.order_by(RFQ.created_at.desc()).offset(offset).limit(page_size).all()
+
+    return {
+        "rfqs": [{
+            "id": str(r.id),
+            "rfq_number": r.rfq_number or str(r.id)[:8],
+            "job_number": r.job_card.job_number if r.job_card else "-",
+            "parts_count": len(r.parts_list) if r.parts_list else 0,
+            "vendor_count": len(set(q.vendor_id for q in r.quotes)) if r.quotes else 0,
+            "quotes_received": sum(1 for q in r.quotes if q.status.value == "submitted") if r.quotes else 0,
+            "status": r.status.value,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        } for r in rfqs],
+        "total": total,
+        "page": page,
+        "pages": (total + page_size - 1) // page_size,
+    }
+
+
+@router.get("/vehicles")
+async def list_vehicles(
+    search: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """List vehicles for admin dashboard"""
+    org_id = current_user.organization_id
+
+    query = db.query(Vehicle).outerjoin(User, Vehicle.owner_id == User.id)
+    if org_id:
+        query = query.filter(Vehicle.organization_id == org_id)
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (Vehicle.plate_number.ilike(search_term)) |
+            (Vehicle.make.ilike(search_term)) |
+            (Vehicle.model.ilike(search_term)) |
+            (User.full_name.ilike(search_term))
+        )
+
+    total = query.count()
+    offset = (page - 1) * page_size
+    vehicles = query.order_by(Vehicle.created_at.desc()).offset(offset).limit(page_size).all()
+
+    result = []
+    for v in vehicles:
+        job_count = db.query(func.count(JobCard.id)).filter(
+            JobCard.vehicle_id == v.id
+        ).scalar() or 0
+
+        last_job = db.query(JobCard.created_at).filter(
+            JobCard.vehicle_id == v.id
+        ).order_by(JobCard.created_at.desc()).first()
+
+        result.append({
+            "id": str(v.id),
+            "plate_number": v.plate_number,
+            "make": v.make,
+            "model": v.model,
+            "year": v.year,
+            "owner_name": v.owner.full_name if v.owner else "-",
+            "job_count": job_count,
+            "last_service_date": last_job[0].isoformat() if last_job else None,
+        })
+
+    return {
+        "vehicles": result,
+        "total": total,
+        "page": page,
+        "pages": (total + page_size - 1) // page_size,
+    }

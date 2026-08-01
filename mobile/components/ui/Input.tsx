@@ -1,5 +1,5 @@
 /**
- * Premium Input Component
+ * Modernist Input — flush-left label, sharp field, red focus border.
  */
 import React, { useState } from 'react';
 import {
@@ -11,7 +11,7 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, borderRadius, typography, spacing } from '@/constants/theme';
+import { colors, borderRadius, typography, spacing, divider } from '@/constants/theme';
 
 interface InputProps extends TextInputProps {
     label?: string;
@@ -51,8 +51,8 @@ export const Input: React.FC<InputProps> = ({
                 {leftIcon && (
                     <Ionicons
                         name={leftIcon}
-                        size={20}
-                        color={isFocused ? colors.primary[400] : colors.neutral[400]}
+                        size={18}
+                        color={isFocused ? colors.primary[500] : colors.neutral[500]}
                         style={styles.leftIcon}
                     />
                 )}
@@ -70,13 +70,13 @@ export const Input: React.FC<InputProps> = ({
                     <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                         <Ionicons
                             name={showPassword ? 'eye-off' : 'eye'}
-                            size={20}
-                            color={colors.neutral[400]}
+                            size={18}
+                            color={colors.neutral[500]}
                         />
                     </TouchableOpacity>
                 ) : rightIcon ? (
                     <TouchableOpacity onPress={onRightIconPress}>
-                        <Ionicons name={rightIcon} size={20} color={colors.neutral[400]} />
+                        <Ionicons name={rightIcon} size={18} color={colors.neutral[500]} />
                     </TouchableOpacity>
                 ) : null}
             </View>
@@ -92,22 +92,24 @@ const styles = StyleSheet.create({
     },
     label: {
         color: colors.text.secondary,
-        fontSize: typography.size.sm,
-        fontWeight: '500',
-        marginBottom: spacing.xs,
+        fontSize: typography.size.xs,
+        fontWeight: '700',
+        letterSpacing: 0.6,
+        textTransform: 'uppercase',
+        marginBottom: 6,
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: colors.background.tertiary,
         borderRadius: borderRadius.md,
-        borderWidth: 1.5,
-        borderColor: 'transparent',
-        paddingHorizontal: spacing.md,
+        borderWidth: divider.hairline,
+        borderColor: divider.colorMajor,
+        paddingHorizontal: spacing.sm + 2,
+        minHeight: 44,
     },
     inputFocused: {
         borderColor: colors.primary[500],
-        backgroundColor: colors.background.elevated,
     },
     inputError: {
         borderColor: colors.error.main,
@@ -116,17 +118,18 @@ const styles = StyleSheet.create({
         flex: 1,
         color: colors.text.primary,
         fontSize: typography.size.md,
-        paddingVertical: spacing.md,
+        paddingVertical: 10,
     },
     inputWithIcon: {
-        paddingLeft: spacing.xs,
+        paddingLeft: 4,
     },
     leftIcon: {
-        marginRight: spacing.xs,
+        marginRight: 6,
     },
     error: {
         color: colors.error.main,
         fontSize: typography.size.xs,
-        marginTop: spacing.xs,
+        marginTop: 4,
+        fontWeight: '600',
     },
 });

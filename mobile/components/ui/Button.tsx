@@ -1,17 +1,17 @@
 /**
- * Premium Button Component
+ * Modernist Button — flat, sharp corners, red accent for primary.
  */
 import React from 'react';
 import {
     TouchableOpacity,
     Text,
+    View,
     StyleSheet,
     ViewStyle,
     TextStyle,
     ActivityIndicator,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { colors, borderRadius, typography, shadows } from '@/constants/theme';
+import { colors, borderRadius, typography, divider } from '@/constants/theme';
 
 interface ButtonProps {
     title: string;
@@ -43,6 +43,10 @@ export const Button: React.FC<ButtonProps> = ({
     const buttonStyles = [
         styles.base,
         styles[size],
+        variant === 'primary' && styles.primary,
+        variant === 'secondary' && styles.secondary,
+        variant === 'outline' && styles.outline,
+        variant === 'ghost' && styles.ghost,
         fullWidth && styles.fullWidth,
         isDisabled && styles.disabled,
         style,
@@ -51,53 +55,32 @@ export const Button: React.FC<ButtonProps> = ({
     const textStyles = [
         styles.text,
         styles[`text_${size}`],
+        variant === 'primary' && styles.textPrimary,
+        variant === 'secondary' && styles.textSecondary,
         variant === 'outline' && styles.textOutline,
         variant === 'ghost' && styles.textGhost,
         isDisabled && styles.textDisabled,
         textStyle,
     ];
 
-    const content = (
-        <>
-            {loading ? (
-                <ActivityIndicator color={variant === 'outline' ? colors.primary[500] : '#fff'} />
-            ) : (
-                <>
-                    {icon && <>{icon}</>}
-                    <Text style={textStyles}>{title}</Text>
-                </>
-            )}
-        </>
-    );
-
-    if (variant === 'primary' && !isDisabled) {
-        return (
-            <TouchableOpacity onPress={onPress} disabled={isDisabled} activeOpacity={0.8}>
-                <LinearGradient
-                    colors={[colors.primary[500], colors.primary[600]]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[buttonStyles, styles.gradient]}
-                >
-                    {content}
-                </LinearGradient>
-            </TouchableOpacity>
-        );
-    }
-
     return (
         <TouchableOpacity
             onPress={onPress}
             disabled={isDisabled}
-            activeOpacity={0.7}
-            style={[
-                buttonStyles,
-                variant === 'secondary' && styles.secondary,
-                variant === 'outline' && styles.outline,
-                variant === 'ghost' && styles.ghost,
-            ]}
+            activeOpacity={0.8}
+            style={buttonStyles}
         >
-            {content}
+            {loading ? (
+                <ActivityIndicator
+                    color={variant === 'primary' ? '#fff' : colors.primary[500]}
+                    size="small"
+                />
+            ) : (
+                <View style={styles.inner}>
+                    {icon}
+                    <Text style={textStyles}>{title}</Text>
+                </View>
+            )}
         </TouchableOpacity>
     );
 };
@@ -107,66 +90,45 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
+        borderRadius: borderRadius.md,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    inner: {
+        flexDirection: 'row',
+        alignItems: 'center',
         gap: 8,
-        borderRadius: borderRadius.md,
-        ...shadows.sm,
     },
-    gradient: {
-        borderRadius: borderRadius.md,
-    },
-    sm: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-    },
-    md: {
-        paddingVertical: 14,
-        paddingHorizontal: 24,
-    },
-    lg: {
-        paddingVertical: 18,
-        paddingHorizontal: 32,
-    },
-    fullWidth: {
-        width: '100%',
-    },
+    sm: { paddingVertical: 8,  paddingHorizontal: 14 },
+    md: { paddingVertical: 12, paddingHorizontal: 20 },
+    lg: { paddingVertical: 16, paddingHorizontal: 24 },
+    fullWidth: { width: '100%' },
+
+    primary:   { backgroundColor: colors.primary[400] },
     secondary: {
-        backgroundColor: colors.accent[500],
+        backgroundColor: colors.background.tertiary,
+        borderColor: divider.colorMajor,
     },
     outline: {
         backgroundColor: 'transparent',
-        borderWidth: 1.5,
-        borderColor: colors.primary[500],
+        borderColor: colors.primary[400],
     },
-    ghost: {
-        backgroundColor: 'transparent',
-        shadowOpacity: 0,
-        elevation: 0,
-    },
-    disabled: {
-        backgroundColor: colors.neutral[700],
-        opacity: 0.6,
-    },
+    ghost: { backgroundColor: 'transparent' },
+
+    disabled: { opacity: 0.45 },
+
     text: {
-        color: '#fff',
-        fontWeight: '600',
+        fontWeight: '700',
         textAlign: 'center',
+        letterSpacing: 0.2,
     },
-    text_sm: {
-        fontSize: typography.size.sm,
-    },
-    text_md: {
-        fontSize: typography.size.md,
-    },
-    text_lg: {
-        fontSize: typography.size.lg,
-    },
-    textOutline: {
-        color: colors.primary[500],
-    },
-    textGhost: {
-        color: colors.primary[400],
-    },
-    textDisabled: {
-        color: colors.neutral[400],
-    },
+    text_sm: { fontSize: typography.size.sm },
+    text_md: { fontSize: typography.size.md },
+    text_lg: { fontSize: typography.size.lg },
+
+    textPrimary:   { color: '#fff' },
+    textSecondary: { color: colors.text.primary },
+    textOutline:   { color: colors.primary[400] },
+    textGhost:     { color: colors.primary[400] },
+    textDisabled:  { color: colors.text.disabled },
 });

@@ -1,179 +1,185 @@
 /**
- * App Theme - Premium Dark Design System
+ * Modernist theme — flat · architectural · Archivo · red on light.
+ * Same export shape as before so consuming screens keep working.
  */
 
 export const colors = {
-    // Primary palette - Deep blue/purple gradient
+    // Accent (Modernist red) — mapped onto the legacy `primary` role.
+    // Ramp shifted so step 400 = brand red (many screens use primary[400] for
+    // icon/text tint on a light ground — needs to stay legible).
     primary: {
-        50: '#E8EAFF',
-        100: '#C4C9FF',
-        200: '#9DA5FF',
-        300: '#7680FF',
-        400: '#5B66FF',
-        500: '#4F5BFF', // Main
-        600: '#4751E5',
-        700: '#3D45CC',
-        800: '#3339B2',
-        900: '#262B8F',
+        50:  '#fff2ef',  // very light tint
+        100: '#ffe0d9',  // light tint (badge bg)
+        200: '#ffc4b8',  // mid tint
+        300: '#ff563c',  // light red (hover on dark surfaces)
+        400: '#ec3013',  // ← brand accent (icons/text on light ground)
+        500: '#dd2b0f',  // deeper — buttons, pressed
+        600: '#ae1800',
+        700: '#7c1405',
+        800: '#4d170e',
+        900: '#2d0a00',
     },
 
-    // Accent - Cyan/Teal
+    // Legacy `accent` role — reuse the same ramp (Modernist is a mono system)
     accent: {
-        50: '#E0FCFF',
-        100: '#BEF8FD',
-        200: '#87EEF8',
-        300: '#54E1F0',
-        400: '#2DD4E4',
-        500: '#0EC7D9', // Main
-        600: '#0AADBD',
-        700: '#0892A0',
-        800: '#077684',
-        900: '#055568',
+        50: '#fff2ef',
+        100: '#ffe0da',
+        200: '#ffc4b9',
+        300: '#ff9784',
+        400: '#ef6853',
+        500: '#ec3013', // Main
+        600: '#c94b39',
+        700: '#9e3526',
+        800: '#71261b',
+        900: '#471d16',
     },
 
-    // Success
     success: {
-        main: '#10B981',
-        light: '#34D399',
-        dark: '#059669',
+        main:  '#1e6b3a',
+        light: '#d9ecdd',
+        dark:  '#0f5227',
     },
 
-    // Warning
     warning: {
-        main: '#F59E0B',
-        light: '#FBBF24',
-        dark: '#D97706',
+        main:  '#b8860b',
+        light: '#fff5d6',
+        dark:  '#8a6408',
     },
 
-    // Error
     error: {
-        main: '#EF4444',
-        light: '#F87171',
-        dark: '#DC2626',
+        main:  '#dd2b0f',
+        light: '#fff2ef',
+        dark:  '#ae1800',
     },
 
-    // Info
-    info: '#3B82F6',
+    info: '#1c4c8c',
 
-    // Neutral - For dark theme
+    // Neutrals — Modernist ramp (light ground)
     neutral: {
-        50: '#FAFAFA',
-        100: '#F4F4F5',
-        200: '#E4E4E7',
-        300: '#D4D4D8',
-        400: '#A1A1AA',
-        500: '#71717A',
-        600: '#52525B',
-        700: '#3F3F46',
-        800: '#27272A',
-        900: '#18181B',
-        950: '#0F0F12',
+        50:  '#f8f4f4',
+        100: '#f8f4f4',
+        200: '#eae7e7',
+        300: '#d7d3d3',
+        400: '#bab6b6',
+        500: '#9b9797',
+        600: '#7d7979',
+        700: '#605d5d',
+        800: '#444141',
+        900: '#2d2b2b',
+        950: '#201e1d',
     },
 
-    // Background colors
+    // Surfaces — flipped to light ground
     background: {
-        primary: '#0A0E27',    // Deep navy
-        secondary: '#121832',  // Slightly lighter
-        tertiary: '#1A2142',   // Card background
-        elevated: '#222B52',   // Modal/popup
+        primary:  '#f3f2f2', // page ground
+        secondary:'#eae9e9', // muted surface
+        tertiary: '#ffffff', // card/panel surface
+        elevated: '#ffffff', // modal/popup
     },
 
-    // Text colors
+    // Text on light ground
     text: {
-        primary: '#FFFFFF',
-        secondary: '#A8B2D1',
-        tertiary: '#6B7394',
-        disabled: '#4A5074',
+        primary:  '#201e1d',
+        secondary:'#605d5d',
+        tertiary: '#7d7979',
+        disabled: '#bab6b6',
     },
 
-    // Status colors for job cards
+    // Job card status colors — mono-forward, Modernist accent for the "active/waiting" states
     status: {
-        requested: '#F59E0B',
-        scheduled: '#8B5CF6',
-        inProgress: '#3B82F6',
-        awaitingApproval: '#EC4899',
-        approved: '#10B981',
-        paid: '#14B8A6',
-        completed: '#22C55E',
-        delivered: '#06B6D4',
-        cancelled: '#EF4444',
+        requested:         '#b8860b',
+        scheduled:         '#605d5d',
+        inProgress:        '#1c4c8c',
+        awaitingApproval:  '#ec3013',
+        approved:          '#1e6b3a',
+        paid:              '#1e6b3a',
+        completed:         '#1e6b3a',
+        delivered:         '#1e6b3a',
+        cancelled:         '#dd2b0f',
     },
 };
 
 export const spacing = {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
+    xs:  4,
+    sm:  8,
+    md:  16,
+    lg:  24,
+    xl:  32,
     xxl: 48,
 };
 
+// Zero-radius on purpose (Modernist)
 export const borderRadius = {
-    sm: 8,
-    md: 12,
-    lg: 16,
-    xl: 24,
-    full: 9999,
+    sm:   0,
+    md:   0,
+    lg:   0,
+    xl:   0,
+    full: 999, // reserved for dots/avatars only
+};
+
+// Divider width used by the design system (2px major, 1px hairline)
+export const divider = {
+    major:    2,
+    hairline: 1,
+    colorMajor:    'rgba(32, 30, 29, 0.4)',
+    colorHairline: 'rgba(32, 30, 29, 0.15)',
 };
 
 export const typography = {
-    // Font families
     fontFamily: {
-        regular: 'System',
-        medium: 'System',
-        semibold: 'System',
-        bold: 'System',
+        regular:  'Archivo_400Regular',
+        medium:   'Archivo_500Medium',
+        semibold: 'Archivo_600SemiBold',
+        bold:     'Archivo_800ExtraBold',
     },
 
-    // Font sizes
     size: {
-        xs: 12,
-        sm: 14,
-        md: 16,
-        lg: 18,
-        xl: 20,
-        xxl: 24,
-        xxxl: 32,
+        xs:      11,
+        sm:      13,
+        md:      14,
+        lg:      16,
+        xl:      18,
+        xxl:     22,
+        xxxl:    28,
         display: 40,
     },
 
-    // Line heights
     lineHeight: {
-        tight: 1.2,
-        normal: 1.5,
-        relaxed: 1.75,
+        tight:   1.15,
+        normal:  1.5,
+        relaxed: 1.7,
     },
 };
 
+// Elevation — soft ink, kept low-key. `glow` retained (no-op) for compatibility.
 export const shadows = {
     sm: {
-        shadowColor: '#000',
+        shadowColor: '#201e1d',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.06,
         shadowRadius: 2,
-        elevation: 2,
+        elevation: 1,
     },
     md: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-        elevation: 5,
+        shadowColor: '#201e1d',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+        elevation: 2,
     },
     lg: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
+        shadowColor: '#201e1d',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
         shadowRadius: 16,
-        elevation: 10,
+        elevation: 4,
     },
     glow: {
-        shadowColor: '#4F5BFF',
+        shadowColor: 'transparent',
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 20,
-        elevation: 15,
+        shadowOpacity: 0,
+        shadowRadius: 0,
+        elevation: 0,
     },
 };
 
@@ -181,6 +187,7 @@ export default {
     colors,
     spacing,
     borderRadius,
+    divider,
     typography,
     shadows,
 };

@@ -8,7 +8,7 @@ from uuid import UUID
 
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_staff
-from app.models import User, JobCard, JobStatus
+from app.models import User, JobCard, JobStatus, UserRole, Vehicle
 from app.schemas.job_card import (
     BookingRequest, JobCardResponse, JobCardListResponse,
     EstimateCreate, EstimateItemResponse, StatusUpdate,
@@ -26,15 +26,37 @@ async def create_booking(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Create new service booking"""
+    """Create new service booking.
+
+    - Customers book for themselves (customer_id ignored)
+    - Admin / service advisor may pass customer_id to book on behalf of a customer
+    """
+    staff_roles = (UserRole.ADMIN, UserRole.SERVICE_ADVISOR)
+    if current_user.role in staff_roles and data.customer_id:
+        # Verify the customer exists in the same org
+        customer = db.query(User).filter(
+            User.id == data.customer_id,
+            User.organization_id == current_user.organization_id,
+            User.role == UserRole.CUSTOMER,
+        ).first()
+        if not customer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Customer not found in your organization",
+            )
+        customer_id = data.customer_id
+    else:
+        customer_id = current_user.id
+
     service = JobCardService(db, org_id=current_user.organization_id)
-    job = service.create_booking(current_user.id, data)
+    job = service.create_booking(customer_id, data)
     return _build_job_response(job)
 
 
 @router.get("", response_model=JobCardListResponse)
 async def list_jobs(
     status_filter: Optional[str] = Query(None, description="Comma-separated statuses"),
+    search: Optional[str] = Query(None, description="Search by job number, customer name, or plate"),
     branch_id: Optional[UUID] = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -46,7 +68,7 @@ async def list_jobs(
     statuses = None
     if status_filter:
         statuses = [JobStatus(s.strip()) for s in status_filter.split(",")]
-    return service.list_jobs(current_user, statuses, branch_id, page, page_size)
+    return service.list_jobs(current_user, statuses, branch_id, page, page_size, search)
 
 
 @router.get("/{job_id}", response_model=JobCardResponse)
@@ -194,6 +216,20 @@ def _build_job_response(job: JobCard) -> JobCardResponse:
         customer_media_urls=job.customer_media_urls or [],
         customer_rating=job.customer_rating,
         customer_feedback=job.customer_feedback,
+        estimate_items=[
+            EstimateItemResponse(
+                id=item.id,
+                item_type=item.item_type,
+                description=item.description,
+                part_number=item.part_number,
+                quantity=item.quantity,
+                unit=item.unit,
+                unit_price=item.unit_price,
+                total_price=item.total_price,
+                warranty_months=item.warranty_months,
+                is_approved=item.is_approved if hasattr(item, 'is_approved') else False
+            ) for item in (job.estimate_items or [])
+        ],
         updates=[
             JobUpdateResponse(
                 id=u.id,

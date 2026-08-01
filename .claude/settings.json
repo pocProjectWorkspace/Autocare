@@ -1,0 +1,72 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/settings.schema.json",
+
+  "_comment_permissions": "Baseline allow-list. Interactive users can grant more. Autonomous runs must pass --allowedTools explicitly rather than relying on this.",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout -b autonomy/*)",
+      "Bash(git checkout autonomy/*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git stash:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(pytest:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(python -c:*)",
+      "Bash(PYTHONIOENCODING=utf-8 python:*)",
+      "Bash(bash .claude/autonomy/*)",
+      "Bash(sh .claude/autonomy/*)",
+      "Bash(node --check:*)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard main:*)",
+      "Bash(git reset --hard origin/main:*)",
+      "Bash(git branch -D:*)",
+      "Bash(git commit *--no-verify*)",
+      "Bash(git commit *--no-gpg-sign*)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(rm -rf ..*)",
+      "Bash(rm -rf D:*)",
+      "Bash(rm -rf /d/Project/Autocare*)"
+    ]
+  },
+
+  "_comment_hooks": "Lightweight smoke checks after every edit — full test suite runs only from the orchestrator's verify step. Keeps interactive dev fast.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/autonomy/smoke.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/autonomy/pretool-guard.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

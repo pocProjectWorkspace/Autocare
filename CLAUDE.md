@@ -137,4 +137,36 @@ CORS allows: `localhost:19006` (Expo web), `localhost:8081` (Expo dev), `localho
 
 ## Environment
 
-Backend config is in `backend/.env` (see `.env.example`). Key settings: `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, S3/MinIO creds, payment gateway keys. Default dev DB is SQLite at `backend/autocare.db`.
+Backend config is in `backend/.env` (see `.env.example`). Key settings: `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, S3/MinIO creds, payment gateway keys. Default dev DB is SQLite at `backend/autocare.db` (may be switched to a hosted Postgres like Neon / Supabase via `DATABASE_URL`).
+
+---
+
+## Autonomous Mode
+
+This repo is set up for supervised and unattended agentic runs. See `.claude/autonomy/README.md` for the full spec.
+
+### Key files
+- `.claude/settings.json` — hooks + minimal permission allow/deny lists
+- `.claude/agents/{planner,implementer,verifier}.md` — the three subagents
+- `.claude/commands/build-module.md` — `/build-module <package> "<task>"` for interactive one-shot cycles
+- `.claude/autonomy/orchestrator.sh` — headless loop over `tasks/modules.md`
+- `.claude/autonomy/verify.sh` — the validation gate (pytest / tsc+lint / vite build)
+- `tasks/modules.md` — the work manifest the orchestrator reads
+
+### Rules that apply to every autonomous invocation
+- **Never** use `--dangerously-skip-permissions`
+- **Never** use `--no-verify`, `--no-gpg-sign`, `--force`, or `git reset --hard main`
+- Every subagent call gets an explicit `--allowedTools` scoped to what it needs
+- Every task runs on a checkpoint branch (`autonomy/YYYY-MM-DD-HHMMSS`) — never on `main`
+- Failing tasks are rolled back to the last passing commit; the run continues
+- Per-task retry cap: `MAX_TRIES=3`. Wall-clock cap: `MAX_WALL_SECONDS=1800`
+- Stay inside one package per implementer invocation (`backend`, `mobile`, or `web`)
+- The PostToolUse hook runs a fast syntax check after every Edit/Write; the verifier subagent runs the full gate before commit
+
+### Package validation gates (used by `verify.sh`)
+- `backend`: `pytest -x --tb=short` if tests exist, else `python -c "from app.main import app"` smoke import
+- `mobile`: `npx tsc --noEmit` + `npm run lint`
+- `web`: `npm run build`
+
+### When to use MCP
+Not for the core planner/implementer/verifier loop. Add an MCP server only for external integrations (GitHub PRs, Jira, external DBs). See `.claude/autonomy/README.md` for the reasoning.

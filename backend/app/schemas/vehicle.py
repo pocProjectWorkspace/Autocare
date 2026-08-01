@@ -3,7 +3,7 @@ Vehicle Schemas
 """
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 
@@ -19,7 +19,7 @@ class VehicleBase(BaseModel):
 class VehicleCreate(VehicleBase):
     mulkiya_url: Optional[str] = None
     mulkiya_number: Optional[str] = None
-    mulkiya_expiry: Optional[datetime] = None
+    mulkiya_expiry: Optional[date] = None
 
 
 class VehicleUpdate(BaseModel):
@@ -31,10 +31,10 @@ class VehicleUpdate(BaseModel):
     vin: Optional[str] = None
     mulkiya_url: Optional[str] = None
     mulkiya_number: Optional[str] = None
-    mulkiya_expiry: Optional[datetime] = None
+    mulkiya_expiry: Optional[date] = None
     insurance_company: Optional[str] = None
     insurance_policy: Optional[str] = None
-    insurance_expiry: Optional[datetime] = None
+    insurance_expiry: Optional[date] = None
     current_mileage: Optional[int] = None
     notes: Optional[str] = None
 
@@ -69,4 +69,4 @@ class QuickVehicleRegister(BaseModel):
     vin: Optional[str] = None
     chassis_number: Optional[str] = None
     engine_number: Optional[str] = None
-    mulkiya_expiry: Optional[datetime] = None
+    mulkiya_expiry: Optional[date] = None

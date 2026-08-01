@@ -148,7 +148,8 @@ class JobCardService:
         status_filter: Optional[List[JobStatus]] = None,
         branch_id: Optional[UUID] = None,
         page: int = 1,
-        page_size: int = 20
+        page_size: int = 20,
+        search: Optional[str] = None
     ) -> JobCardListResponse:
         """List job cards based on user role"""
         query = self.db.query(JobCard).options(
@@ -173,11 +174,24 @@ class JobCardService:
                 query = query.filter(JobCard.branch_id == branch_id)
             elif user.branch_id:
                 query = query.filter(JobCard.branch_id == user.branch_id)
-        
+
+        # Search filter
+        if search:
+            search_term = f"%{search}%"
+            query = query.outerjoin(User, JobCard.customer_id == User.id).outerjoin(
+                Vehicle, JobCard.vehicle_id == Vehicle.id
+            ).filter(
+                or_(
+                    JobCard.job_number.ilike(search_term),
+                    User.full_name.ilike(search_term),
+                    Vehicle.plate_number.ilike(search_term)
+                )
+            )
+
         # Status filter
         if status_filter:
             query = query.filter(JobCard.status.in_(status_filter))
-        
+
         # Exclude closed/cancelled for active lists
         if not status_filter:
             query = query.filter(

@@ -4,446 +4,375 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Service - AutoCare</title>
-    <meta name="description" content="Book your car service with AutoCare - Free pickup and delivery available">
+    <title>Book a service — AutoCare</title>
+    <meta name="description" content="Book your car service — free pickup and delivery in Dubai, Abu Dhabi, and Sharjah.">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4F5BFF;
-            --primary-dark: #3D45CC;
-            --accent: #0EC7D9;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --error: #EF4444;
-            --bg-primary: #0A0E27;
-            --bg-secondary: #121832;
-            --bg-tertiary: #1A2142;
-            --text-primary: #FFFFFF;
-            --text-secondary: #A8B2D1;
-            --text-tertiary: #6B7394;
-            --gradient-primary: linear-gradient(135deg, #4F5BFF 0%, #0EC7D9 100%);
+            --bg:      #f3f2f2;
+            --surface: #ffffff;
+            --ink:     #201e1d;
+            --ink-dim: #605d5d;
+            --ink-mute:#9b9797;
+            --accent:  #ec3013;
+            --accent-hover: #dd2b0f;
+            --accent-tint: #fff2ef;
+            --divider: rgba(32, 30, 29, 0.4);
+            --hairline: rgba(32, 30, 29, 0.15);
+            --dark:    #201e1d;
+            --success: #1e6b3a;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
+            font-family: 'Archivo', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.5;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
+        h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.015em; line-height: 1.1; }
+        a { color: inherit; text-decoration: none; }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 24px;
+        .container { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+
+        /* Header */
+        .site-header {
+            border-bottom: 2px solid var(--divider);
+            background: var(--bg);
         }
-
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 24px 0;
-            margin-bottom: 40px;
+            padding: 14px 0;
         }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--text-primary);
-            text-decoration: none;
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; }
+        .logo-mark {
+            display: inline-flex;
+            width: 28px; height: 28px;
+            background: var(--accent);
+            color: #fff;
+            align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 800;
         }
+        .header-link { font-size: 13px; color: var(--ink-dim); font-weight: 600; }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--gradient-primary);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
+        /* Page title */
+        .page-title { padding: 40px 0 24px; }
+        h1 { font-size: clamp(32px, 4.5vw, 44px); margin-bottom: 8px; }
+        .subtitle { color: var(--ink-dim); font-size: 15px; }
 
-        h1 {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            margin-bottom: 40px;
-        }
-
-        /* Progress Steps */
+        /* Progress */
         .progress-steps {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 48px;
-            position: relative;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border: 2px solid var(--divider);
+            background: var(--surface);
+            margin-bottom: 32px;
         }
-
-        .progress-steps::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 10%;
-            right: 10%;
-            height: 2px;
-            background: var(--bg-tertiary);
-        }
-
         .step {
-            text-align: center;
-            flex: 1;
-            position: relative;
-        }
-
-        .step-dot {
-            width: 40px;
-            height: 40px;
-            background: var(--bg-tertiary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .step.active .step-dot,
-        .step.completed .step-dot {
-            background: var(--gradient-primary);
-        }
-
-        .step.completed .step-dot::after {
-            content: '✓';
-        }
-
-        .step-label {
-            font-size: 14px;
-            color: var(--text-tertiary);
-        }
-
-        .step.active .step-label {
-            color: var(--text-primary);
-        }
-
-        /* Form Sections */
-        .form-section {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .form-section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .form-card {
-            background: var(--bg-secondary);
-            border-radius: 20px;
-            padding: 32px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .form-card h3 {
-            font-size: 18px;
-            margin-bottom: 24px;
+            padding: 16px 20px;
+            border-right: 1px solid var(--divider);
             display: flex;
             align-items: center;
             gap: 12px;
+            transition: background-color 0.12s;
         }
+        .step:last-child { border-right: none; }
+        .step-dot {
+            width: 26px; height: 26px;
+            border: 1px solid var(--divider);
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            font-weight: 800;
+            font-size: 12px;
+            color: var(--ink-mute);
+            flex: none;
+        }
+        .step-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--ink-mute);
+        }
+        .step.active { background: var(--surface); }
+        .step.active .step-dot { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .step.active .step-label { color: var(--ink); }
+        .step.completed .step-dot { background: var(--ink); border-color: var(--ink); color: #fff; }
+        .step.completed .step-label { color: var(--ink-dim); }
 
-        .form-group {
+        /* Form sections */
+        .form-section { display: none; animation: fadeIn 0.2s ease; }
+        .form-section.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-card {
+            background: var(--surface);
+            border: 1px solid var(--divider);
+            padding: 24px;
             margin-bottom: 20px;
         }
-
+        .form-card h3 {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--ink);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--divider);
+        }
+        .form-group { margin-bottom: 16px; }
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--ink-dim);
         }
-
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 14px 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 16px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--divider);
+            color: var(--ink);
+            font-size: 14px;
             font-family: inherit;
-            transition: all 0.3s;
+            border-radius: 0;
+            min-height: 40px;
+            transition: border-color 0.12s;
         }
-
+        .form-group input:hover,
+        .form-group select:hover,
+        .form-group textarea:hover { border-color: rgba(32, 30, 29, 0.7); }
         .form-group input:focus,
         .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 91, 255, 0.2);
-        }
+        .form-group textarea:focus { outline: none; border-color: var(--accent); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        /* Service Selection */
+        /* Service options — clickable cards, sharp */
         .service-options {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
+            gap: 0;
+            border: 1px solid var(--divider);
         }
-
         .service-option {
-            background: var(--bg-tertiary);
-            border: 2px solid transparent;
-            border-radius: 16px;
             padding: 20px;
+            border-right: 1px solid var(--divider);
+            border-bottom: 1px solid var(--divider);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background-color 0.12s;
+            position: relative;
+            display: block;
         }
-
-        .service-option:hover {
-            border-color: rgba(79, 91, 255, 0.3);
-        }
-
+        .service-option:nth-child(2n) { border-right: none; }
+        .service-option:nth-last-child(-n+2) { border-bottom: none; }
+        .service-option:hover { background: rgba(32, 30, 29, 0.03); }
         .service-option.selected {
-            border-color: var(--primary);
-            background: rgba(79, 91, 255, 0.1);
+            background: var(--accent-tint);
+            box-shadow: inset 3px 0 0 var(--accent);
         }
-
-        .service-option input {
-            display: none;
-        }
-
-        .service-option .service-icon {
-            font-size: 32px;
+        .service-option input { position: absolute; opacity: 0; pointer-events: none; }
+        .service-icon {
+            display: inline-flex;
+            width: 32px; height: 32px;
+            border: 1px solid var(--ink);
+            align-items: center; justify-content: center;
+            font-size: 15px;
             margin-bottom: 12px;
         }
-
-        .service-option h4 {
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
-
-        .service-option p {
-            font-size: 13px;
-            color: var(--text-tertiary);
-        }
-
-        .service-option .service-price {
-            margin-top: 12px;
-            font-size: 18px;
-            font-weight: 700;
+        .service-option h4 { font-size: 15px; margin-bottom: 4px; }
+        .service-option p { font-size: 12px; color: var(--ink-dim); margin-bottom: 8px; }
+        .service-price {
+            font-family: 'Archivo';
+            font-size: 15px;
+            font-weight: 800;
             color: var(--accent);
         }
 
-        /* Intake Type */
-        .intake-options {
-            display: flex;
-            gap: 16px;
-        }
-
+        /* Intake */
+        .intake-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--divider); }
         .intake-option {
-            flex: 1;
-            background: var(--bg-tertiary);
-            border: 2px solid transparent;
-            border-radius: 16px;
             padding: 24px;
-            text-align: center;
+            border-right: 1px solid var(--divider);
             cursor: pointer;
-            transition: all 0.3s;
+            display: block;
+            position: relative;
+            transition: background-color 0.12s;
         }
-
+        .intake-option:last-child { border-right: none; }
+        .intake-option:hover { background: rgba(32, 30, 29, 0.03); }
         .intake-option.selected {
-            border-color: var(--primary);
-            background: rgba(79, 91, 255, 0.1);
+            background: var(--accent-tint);
+            box-shadow: inset 3px 0 0 var(--accent);
         }
-
-        .intake-option input {
-            display: none;
-        }
-
-        .intake-option .intake-icon {
-            font-size: 36px;
+        .intake-option input { position: absolute; opacity: 0; pointer-events: none; }
+        .intake-icon {
+            display: inline-flex;
+            width: 40px; height: 40px;
+            border: 1px solid var(--ink);
+            align-items: center; justify-content: center;
+            font-size: 18px;
             margin-bottom: 12px;
         }
+        .intake-option h4 { font-size: 15px; margin-bottom: 4px; }
+        .intake-option p { font-size: 12px; color: var(--ink-dim); }
 
-        /* Date/Time Picker */
+        /* Time slots */
         .time-slots {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            gap: 0;
+            border: 1px solid var(--divider);
             margin-top: 16px;
         }
-
         .time-slot {
             padding: 12px;
-            background: var(--bg-tertiary);
-            border: 2px solid transparent;
-            border-radius: 10px;
+            border-right: 1px solid var(--divider);
+            border-bottom: 1px solid var(--divider);
             text-align: center;
             cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background-color 0.12s;
         }
-
-        .time-slot:hover {
-            border-color: rgba(79, 91, 255, 0.3);
-        }
-
-        .time-slot.selected {
-            border-color: var(--primary);
-            background: rgba(79, 91, 255, 0.1);
-        }
+        .time-slot:nth-child(4n) { border-right: none; }
+        .time-slot:nth-last-child(-n+4) { border-bottom: none; }
+        .time-slot:hover { background: rgba(32, 30, 29, 0.05); }
+        .time-slot.selected { background: var(--accent); color: #fff; }
 
         /* Summary */
         .summary-item {
             display: flex;
             justify-content: space-between;
-            padding: 16px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 0;
+            border-bottom: 1px solid var(--hairline);
+            font-size: 13px;
         }
-
-        .summary-item:last-child {
-            border-bottom: none;
-        }
-
+        .summary-item:last-of-type { border-bottom: none; }
         .summary-label {
-            color: var(--text-secondary);
+            color: var(--ink-dim);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
-
-        .summary-value {
-            font-weight: 600;
-        }
-
+        .summary-value { font-weight: 600; }
         .summary-total {
             display: flex;
             justify-content: space-between;
-            padding: 20px 0;
-            font-size: 20px;
-            font-weight: 700;
-            border-top: 2px solid rgba(255, 255, 255, 0.1);
-            margin-top: 16px;
+            align-items: baseline;
+            padding: 20px 0 4px;
+            border-top: 2px solid var(--divider);
+            margin-top: 12px;
         }
-
+        .summary-total > span:first-child {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--ink-dim);
+        }
         .summary-total .total-amount {
-            color: var(--accent);
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: -0.02em;
         }
 
         /* Buttons */
         .form-actions {
             display: flex;
-            gap: 16px;
-            margin-top: 32px;
+            gap: 12px;
+            margin-top: 24px;
         }
-
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
+            padding: 12px 20px;
+            font-weight: 700;
+            font-size: 13px;
+            font-family: inherit;
             cursor: pointer;
-            border: none;
-            transition: all 0.3s;
+            border: 1px solid transparent;
+            border-radius: 0;
+            transition: background-color 0.12s, color 0.12s;
             flex: 1;
         }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--divider); }
+        .btn-secondary:hover { background: rgba(32, 30, 29, 0.06); }
 
-        .btn-primary {
-            background: var(--gradient-primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 40px rgba(79, 91, 255, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
-        .success-message {
-            text-align: center;
-            padding: 60px 20px;
-        }
-
+        /* Success */
+        .success-message { text-align: center; padding: 40px 20px; }
         .success-icon {
-            width: 100px;
-            height: 100px;
-            background: var(--success);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            margin: 0 auto 24px;
+            width: 80px; height: 80px;
+            background: var(--accent);
+            color: #fff;
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            font-size: 40px;
+            margin-bottom: 24px;
+        }
+        .success-message h2 { font-size: 32px; margin-bottom: 12px; }
+        .booking-ref {
+            display: inline-block;
+            padding: 8px 14px;
+            background: var(--ink);
+            color: #fff;
+            font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin: 20px 0 28px;
         }
 
-        @media (max-width: 768px) {
-
-            .form-row,
-            .service-options {
+        @media (max-width: 640px) {
+            .container { padding: 0 16px; }
+            .progress-steps { grid-template-columns: 1fr 1fr; }
+            .step:nth-child(2) { border-right: none; }
+            .step:nth-child(-n+2) { border-bottom: 1px solid var(--divider); }
+            .form-row, .service-options, .intake-options {
                 grid-template-columns: 1fr;
             }
-
-            .intake-options {
-                flex-direction: column;
-            }
-
-            .time-slots {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .service-option, .intake-option { border-right: none !important; }
+            .time-slots { grid-template-columns: repeat(2, 1fr); }
+            .time-slot:nth-child(2n) { border-right: none; }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <header class="header">
+    <header class="site-header">
+        <div class="container header">
             <a href="/" class="logo">
-                <span class="logo-icon">🚗</span>
+                <span class="logo-mark">A</span>
                 AutoCare
             </a>
-        </header>
+            <a href="/" class="header-link">&larr; Back to home</a>
+        </div>
+    </header>
 
-        <h1>Book Your Service</h1>
-        <p class="subtitle">Get your vehicle serviced with free pickup & delivery</p>
+    <div class="container">
+        <div class="page-title">
+            <h1>Book your service.</h1>
+            <p class="subtitle">Free pickup &amp; delivery across Dubai, Abu Dhabi, and Sharjah.</p>
+        </div>
 
         <!-- Progress Steps -->
         <div class="progress-steps">
@@ -465,73 +394,73 @@
             </div>
         </div>
 
-        <!-- Step 1: Service Selection -->
+        <!-- Step 1: Service -->
         <div class="form-section active" id="step-1">
             <div class="form-card">
-                <h3>🔧 Select Service Type</h3>
+                <h3>Select service type</h3>
                 <div class="service-options">
                     <label class="service-option">
                         <input type="radio" name="service" value="minor" data-price="249">
-                        <div class="service-icon">🔧</div>
-                        <h4>Minor Service</h4>
+                        <div class="service-icon">◐</div>
+                        <h4>Minor service</h4>
                         <p>Oil change, filter, basic check</p>
                         <div class="service-price">From AED 249</div>
                     </label>
                     <label class="service-option">
                         <input type="radio" name="service" value="regular" data-price="449">
-                        <div class="service-icon">⚙️</div>
-                        <h4>Regular Service</h4>
+                        <div class="service-icon">◎</div>
+                        <h4>Regular service</h4>
                         <p>Complete maintenance package</p>
                         <div class="service-price">From AED 449</div>
                     </label>
                     <label class="service-option">
                         <input type="radio" name="service" value="major" data-price="899">
-                        <div class="service-icon">🔩</div>
-                        <h4>Major Service</h4>
-                        <p>Full inspection & overhaul</p>
+                        <div class="service-icon">◆</div>
+                        <h4>Major service</h4>
+                        <p>Full inspection &amp; overhaul</p>
                         <div class="service-price">From AED 899</div>
                     </label>
                     <label class="service-option">
                         <input type="radio" name="service" value="ac" data-price="199">
-                        <div class="service-icon">❄️</div>
-                        <h4>AC Service</h4>
-                        <p>AC check & gas recharge</p>
+                        <div class="service-icon">✱</div>
+                        <h4>AC service</h4>
+                        <p>Check &amp; gas recharge</p>
                         <div class="service-price">From AED 199</div>
                     </label>
                 </div>
             </div>
 
             <div class="form-card">
-                <h3>🚗 How would you like to bring your vehicle?</h3>
+                <h3>How would you like to bring your vehicle?</h3>
                 <div class="intake-options">
                     <label class="intake-option">
                         <input type="radio" name="intake" value="pickup">
-                        <div class="intake-icon">🚙</div>
-                        <h4>Pickup & Delivery</h4>
-                        <p>We'll come to you (FREE)</p>
+                        <div class="intake-icon">↔</div>
+                        <h4>Pickup &amp; delivery</h4>
+                        <p>We come to you (free)</p>
                     </label>
                     <label class="intake-option">
                         <input type="radio" name="intake" value="dropoff">
-                        <div class="intake-icon">🏢</div>
-                        <h4>Drop Off</h4>
-                        <p>Bring to our service center</p>
+                        <div class="intake-icon">■</div>
+                        <h4>Drop off</h4>
+                        <p>Bring it to our service center</p>
                     </label>
                 </div>
             </div>
 
             <div class="form-actions">
-                <button class="btn btn-primary" onclick="nextStep(2)">Continue →</button>
+                <button class="btn btn-primary" onclick="nextStep(2)">Continue &rarr;</button>
             </div>
         </div>
 
-        <!-- Step 2: Vehicle Details -->
+        <!-- Step 2: Vehicle -->
         <div class="form-section" id="step-2">
             <div class="form-card">
-                <h3>🚗 Vehicle Details</h3>
+                <h3>Vehicle details</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Plate Number *</label>
-                        <input type="text" id="plate" placeholder="e.g., A 12345">
+                        <label>Plate number *</label>
+                        <input type="text" id="plate" placeholder="A 12345">
                     </div>
                     <div class="form-group">
                         <label>Emirates</label>
@@ -546,7 +475,7 @@
                     <div class="form-group">
                         <label>Make *</label>
                         <select id="make">
-                            <option value="">Select Make</option>
+                            <option value="">Select make</option>
                             <option value="toyota">Toyota</option>
                             <option value="nissan">Nissan</option>
                             <option value="honda">Honda</option>
@@ -557,14 +486,14 @@
                     </div>
                     <div class="form-group">
                         <label>Model *</label>
-                        <input type="text" id="model" placeholder="e.g., Camry">
+                        <input type="text" id="model" placeholder="Camry">
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Year</label>
                         <select id="year">
-                            <option value="">Select Year</option>
+                            <option value="">Select year</option>
                             <script>
                                 for (let y = 2024; y >= 2000; y--) {
                                     document.write(`<option value="${y}">${y}</option>`);
@@ -574,32 +503,32 @@
                     </div>
                     <div class="form-group">
                         <label>Mileage (km)</label>
-                        <input type="number" id="mileage" placeholder="e.g., 50000">
+                        <input type="number" id="mileage" placeholder="50000">
                     </div>
                 </div>
             </div>
 
             <div class="form-card">
-                <h3>📝 Describe the Issue (Optional)</h3>
+                <h3>Describe the issue (optional)</h3>
                 <div class="form-group">
                     <textarea id="notes" rows="4" placeholder="Any specific issues or requests..."></textarea>
                 </div>
             </div>
 
             <div class="form-actions">
-                <button class="btn btn-secondary" onclick="prevStep(1)">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep(3)">Continue →</button>
+                <button class="btn btn-secondary" onclick="prevStep(1)">&larr; Back</button>
+                <button class="btn btn-primary" onclick="nextStep(3)">Continue &rarr;</button>
             </div>
         </div>
 
         <!-- Step 3: Schedule -->
         <div class="form-section" id="step-3">
             <div class="form-card">
-                <h3>📅 Select Date</h3>
+                <h3>Select date</h3>
                 <div class="form-group">
                     <input type="date" id="date" min="">
                 </div>
-                <h3 style="margin-top: 24px;">⏰ Preferred Time</h3>
+                <h3 style="margin-top: 24px;">Preferred time</h3>
                 <div class="time-slots">
                     <div class="time-slot" data-time="08:00">8:00 AM</div>
                     <div class="time-slot" data-time="09:00">9:00 AM</div>
@@ -613,54 +542,54 @@
             </div>
 
             <div class="form-card" id="address-card" style="display:none;">
-                <h3>📍 Pickup Address</h3>
+                <h3>Pickup address</h3>
                 <div class="form-group">
-                    <label>Full Address *</label>
-                    <textarea id="address" rows="2" placeholder="Building, Street, Area, City"></textarea>
+                    <label>Full address *</label>
+                    <textarea id="address" rows="2" placeholder="Building, street, area, city"></textarea>
                 </div>
             </div>
 
             <div class="form-actions">
-                <button class="btn btn-secondary" onclick="prevStep(2)">← Back</button>
-                <button class="btn btn-primary" onclick="nextStep(4)">Continue →</button>
+                <button class="btn btn-secondary" onclick="prevStep(2)">&larr; Back</button>
+                <button class="btn btn-primary" onclick="nextStep(4)">Continue &rarr;</button>
             </div>
         </div>
 
         <!-- Step 4: Confirm -->
         <div class="form-section" id="step-4">
             <div class="form-card">
-                <h3>📋 Booking Summary</h3>
+                <h3>Booking summary</h3>
                 <div class="summary-item">
                     <span class="summary-label">Service</span>
-                    <span class="summary-value" id="summary-service">-</span>
+                    <span class="summary-value" id="summary-service">—</span>
                 </div>
                 <div class="summary-item">
                     <span class="summary-label">Vehicle</span>
-                    <span class="summary-value" id="summary-vehicle">-</span>
+                    <span class="summary-value" id="summary-vehicle">—</span>
                 </div>
                 <div class="summary-item">
-                    <span class="summary-label">Date & Time</span>
-                    <span class="summary-value" id="summary-datetime">-</span>
+                    <span class="summary-label">Date &amp; time</span>
+                    <span class="summary-value" id="summary-datetime">—</span>
                 </div>
                 <div class="summary-item">
-                    <span class="summary-label">Intake Type</span>
-                    <span class="summary-value" id="summary-intake">-</span>
+                    <span class="summary-label">Intake type</span>
+                    <span class="summary-value" id="summary-intake">—</span>
                 </div>
                 <div class="summary-total">
-                    <span>Estimated Total</span>
+                    <span>Estimated total</span>
                     <span class="total-amount" id="summary-price">AED 0</span>
                 </div>
             </div>
 
             <div class="form-card">
-                <h3>📱 Your Contact Details</h3>
+                <h3>Your contact details</h3>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Full Name *</label>
+                        <label>Full name *</label>
                         <input type="text" id="name" placeholder="Your name">
                     </div>
                     <div class="form-group">
-                        <label>Mobile Number *</label>
+                        <label>Mobile *</label>
                         <input type="tel" id="mobile" placeholder="+971 50 123 4567">
                     </div>
                 </div>
@@ -671,8 +600,8 @@
             </div>
 
             <div class="form-actions">
-                <button class="btn btn-secondary" onclick="prevStep(3)">← Back</button>
-                <button class="btn btn-primary" onclick="submitBooking()">Confirm Booking ✓</button>
+                <button class="btn btn-secondary" onclick="prevStep(3)">&larr; Back</button>
+                <button class="btn btn-primary" onclick="submitBooking()">Confirm booking ✓</button>
             </div>
         </div>
 
@@ -681,12 +610,12 @@
             <div class="form-card">
                 <div class="success-message">
                     <div class="success-icon">✓</div>
-                    <h2>Booking Confirmed!</h2>
-                    <p style="color: var(--text-secondary); margin: 16px 0;">Your service has been scheduled. We'll send
-                        you a confirmation SMS shortly.</p>
-                    <p style="font-size: 24px; font-weight: 700; color: var(--accent); margin: 24px 0;"
-                        id="booking-ref">REF: AC-000000</p>
-                    <a href="/" class="btn btn-primary" style="display: inline-flex; flex: none;">Return Home</a>
+                    <h2>Booking confirmed.</h2>
+                    <p style="color: var(--ink-dim); margin: 12px auto 0; max-width: 380px;">Your service has been scheduled. We'll text you a confirmation shortly.</p>
+                    <div class="booking-ref" id="booking-ref">REF: AC-000000</div>
+                    <div>
+                        <a href="/" class="btn btn-primary" style="display: inline-flex; flex: none;">Return home</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -731,50 +660,39 @@
         });
 
         function nextStep(step) {
-            // Hide all sections
             document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 'completed'));
 
-            // Show target section
             document.getElementById(`step-${step}`).classList.add('active');
 
-            // Update progress
             for (let i = 1; i <= 4; i++) {
                 const stepEl = document.querySelector(`.step[data-step="${i}"]`);
                 if (i < step) stepEl.classList.add('completed');
                 if (i === step) stepEl.classList.add('active');
             }
 
-            // Update summary if step 4
             if (step === 4) updateSummary();
         }
 
-        function prevStep(step) {
-            nextStep(step);
-        }
+        function prevStep(step) { nextStep(step); }
 
         function updateSummary() {
-            const serviceNames = { minor: 'Minor Service', regular: 'Regular Service', major: 'Major Service', ac: 'AC Service' };
-            document.getElementById('summary-service').textContent = serviceNames[selectedService] || '-';
+            const serviceNames = { minor: 'Minor service', regular: 'Regular service', major: 'Major service', ac: 'AC service' };
+            document.getElementById('summary-service').textContent = serviceNames[selectedService] || '—';
             document.getElementById('summary-vehicle').textContent =
-                `${document.getElementById('make').value} ${document.getElementById('model').value} - ${document.getElementById('plate').value}`;
+                `${document.getElementById('make').value} ${document.getElementById('model').value} · ${document.getElementById('plate').value}`;
             document.getElementById('summary-datetime').textContent =
-                `${document.getElementById('date').value} at ${selectedTime || '-'}`;
+                `${document.getElementById('date').value} at ${selectedTime || '—'}`;
             document.getElementById('summary-intake').textContent =
-                selectedIntake === 'pickup' ? 'Pickup & Delivery' : 'Drop Off';
+                selectedIntake === 'pickup' ? 'Pickup & delivery' : 'Drop off';
             document.getElementById('summary-price').textContent = `AED ${servicePrice}`;
         }
 
         function submitBooking() {
-            // Generate random ref
             const ref = 'AC-' + Math.random().toString(36).substr(2, 6).toUpperCase();
             document.getElementById('booking-ref').textContent = 'REF: ' + ref;
-
-            // Show success
             document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
             document.getElementById('step-success').classList.add('active');
-
-            // In production, would call API here
         }
     </script>
 </body>

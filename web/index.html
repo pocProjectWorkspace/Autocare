@@ -8,7 +8,9 @@
   <meta name="description"
     content="AutoCare Service Center Management Dashboard - Manage job cards, estimates, parts, and more.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 
@@ -18,7 +20,7 @@
     <div id="auth-screen" class="auth-container">
       <div class="auth-card">
         <div class="auth-logo">
-          <span class="logo-icon">🚗</span>
+          <span class="logo-icon" aria-hidden="true">■</span>
           <h1>AutoCare</h1>
           <p>Service Center Dashboard</p>
         </div>
@@ -56,7 +58,7 @@
       <!-- Sidebar -->
       <aside class="sidebar">
         <div class="sidebar-header">
-          <span class="logo-icon">🚗</span>
+          <span class="logo-icon" aria-hidden="true">A</span>
           <span class="logo-text">AutoCare</span>
         </div>
 
@@ -120,14 +122,28 @@
             <h1 id="page-title">Dashboard Overview</h1>
           </div>
           <div class="header-right">
-            <div class="search-box">
-              <i data-lucide="search"></i>
-              <input type="text" placeholder="Search jobs, customers...">
+            <div class="search-wrapper">
+              <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="global-search" placeholder="Search jobs, customers...">
+              </div>
+              <div id="search-results" class="search-results hidden"></div>
             </div>
-            <button class="btn-icon notification-btn">
-              <i data-lucide="bell"></i>
-              <span class="notification-badge">3</span>
-            </button>
+            <div class="notification-wrapper">
+              <button class="btn-icon notification-btn" id="notification-bell">
+                <i data-lucide="bell"></i>
+                <span class="notification-badge" id="notification-count">0</span>
+              </button>
+              <div id="notification-dropdown" class="notification-dropdown hidden">
+                <div class="notif-header">
+                  <strong>Notifications</strong>
+                  <button class="btn-sm btn-link" id="mark-all-read">Mark all read</button>
+                </div>
+                <div id="notification-list" class="notif-list">
+                  <p class="notif-empty">No notifications</p>
+                </div>
+              </div>
+            </div>
             <button class="btn btn-primary" id="new-job-btn">
               <i data-lucide="plus"></i>
               <span>New Job</span>
@@ -524,7 +540,7 @@
             <div class="settings-grid">
               <div class="settings-card">
                 <h3>Profile Settings</h3>
-                <form class="settings-form">
+                <form class="settings-form" id="profile-form">
                   <div class="form-group">
                     <label>Full Name</label>
                     <input type="text" id="settings-name" placeholder="Your name">
@@ -533,29 +549,70 @@
                     <label>Email</label>
                     <input type="email" id="settings-email" placeholder="your@email.com">
                   </div>
-                  <button type="submit" class="btn btn-primary">Save Changes</button>
+                  <button type="submit" class="btn btn-primary">Save Profile</button>
                 </form>
               </div>
 
               <div class="settings-card">
-                <h3>Branch Settings</h3>
-                <form class="settings-form">
+                <h3>Organization Settings</h3>
+                <form class="settings-form" id="org-settings-form">
+                  <div class="form-group">
+                    <label>Organization Name</label>
+                    <input type="text" id="settings-org-name" placeholder="Company name">
+                  </div>
                   <div class="form-group">
                     <label>Default Branch</label>
                     <select id="settings-branch">
                       <option value="">Select Branch</option>
                     </select>
                   </div>
-                  <div class="form-group">
-                    <label>Working Hours</label>
-                    <div class="time-range">
-                      <input type="time" value="08:00">
-                      <span>to</span>
-                      <input type="time" value="20:00">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Currency</label>
+                      <input type="text" id="settings-currency" value="AED" placeholder="AED">
+                    </div>
+                    <div class="form-group">
+                      <label>Tax Rate (%)</label>
+                      <input type="number" id="settings-tax-rate" value="5" step="0.1">
                     </div>
                   </div>
-                  <button type="submit" class="btn btn-primary">Save Changes</button>
+                  <button type="submit" class="btn btn-primary">Save Settings</button>
                 </form>
+              </div>
+            </div>
+
+            <!-- Team Management -->
+            <div class="table-card" style="margin-top: var(--spacing-lg);">
+              <div class="card-header">
+                <h3>Team Management</h3>
+                <button class="btn btn-primary btn-sm" id="add-user-btn">
+                  <i data-lucide="plus"></i>
+                  <span>Add Member</span>
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="filter-tabs" id="team-role-tabs" style="margin-bottom: var(--spacing-md);">
+                  <button class="filter-tab active" data-role="all">All</button>
+                  <button class="filter-tab" data-role="service_advisor">Advisors</button>
+                  <button class="filter-tab" data-role="technician">Technicians</button>
+                  <button class="filter-tab" data-role="driver">Drivers</button>
+                  <button class="filter-tab" data-role="vendor">Vendors</button>
+                </div>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Mobile</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="team-table">
+                    <tr><td colspan="6" class="loading-cell">Loading...</td></tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -626,8 +683,8 @@
 
             <!-- New Vehicle Section (Hidden by default) -->
             <div id="new-vehicle-section" class="hidden"
-              style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed rgba(255,255,255,0.1);">
-              <h4 style="margin-bottom: 12px; font-size: 14px; color: var(--accent);">Register New Vehicle</h4>
+              style="background: var(--color-surface-2); padding: 16px; margin-bottom: 20px; border: 1px dashed var(--color-divider);">
+              <h4 style="margin-bottom: 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-accent);">Register New Vehicle</h4>
               <div class="form-row">
                 <div class="form-group">
                   <label>Plate Number *</label>
@@ -704,6 +761,109 @@
       </div>
     </div>
   </div>
+
+    <!-- Estimate Modal -->
+    <div id="estimate-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2>Estimate Builder - <span id="estimate-job-number"></span></h2>
+          <button class="btn-icon modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <table class="data-table" id="estimate-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="estimate-lines"></tbody>
+          </table>
+          <button class="btn btn-secondary btn-sm" id="add-estimate-line" style="margin-top:var(--spacing-md);">+ Add Line</button>
+          <div class="estimate-summary" style="margin-top:var(--spacing-lg); text-align:right;">
+            <p>Subtotal: <strong id="est-subtotal">AED 0.00</strong></p>
+            <p>VAT (5%): <strong id="est-tax">AED 0.00</strong></p>
+            <p style="font-size:1.1rem;">Grand Total: <strong id="est-total">AED 0.00</strong></p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary modal-close">Cancel</button>
+          <button class="btn btn-primary" id="submit-estimate-btn">Submit Estimate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RFQ Detail Modal -->
+    <div id="rfq-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content modal-lg">
+        <div class="modal-header">
+          <h2 id="rfq-modal-title">RFQ Details</h2>
+          <button class="btn-icon modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body" id="rfq-modal-body">
+          <p>Loading...</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary modal-close">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="user-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="user-modal-title">Add Team Member</h2>
+          <button class="btn-icon modal-close"><i data-lucide="x"></i></button>
+        </div>
+        <div class="modal-body">
+          <form id="user-form">
+            <input type="hidden" id="user-edit-id">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" id="user-name" required placeholder="Full name">
+            </div>
+            <div class="form-group">
+              <label>Mobile *</label>
+              <input type="tel" id="user-mobile" required placeholder="+971...">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="user-email" placeholder="email@example.com">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Role *</label>
+                <select id="user-role" required>
+                  <option value="">Select Role</option>
+                  <option value="service_advisor">Service Advisor</option>
+                  <option value="technician">Technician</option>
+                  <option value="driver">Driver</option>
+                  <option value="vendor">Vendor</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Branch</label>
+                <select id="user-branch">
+                  <option value="">Select Branch</option>
+                </select>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary modal-close">Cancel</button>
+          <button class="btn btn-primary" id="save-user-btn">Save</button>
+        </div>
+      </div>
+    </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>

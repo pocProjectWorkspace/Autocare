@@ -1,5 +1,5 @@
 /**
- * Loading Indicator Component
+ * Loading indicator — Modernist accent, matching light ground.
  */
 import React from 'react';
 import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
@@ -40,8 +40,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     message: {
-        marginTop: spacing.md,
+        marginTop: spacing.sm,
         color: colors.text.secondary,
-        fontSize: typography.size.md,
+        fontSize: typography.size.sm,
+        fontWeight: '600',
+        letterSpacing: 0.2,
     },
 });
