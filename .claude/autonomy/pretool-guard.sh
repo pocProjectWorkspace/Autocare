@@ -36,7 +36,9 @@ BLOCKED=(
 )
 
 for pat in "${BLOCKED[@]}"; do
-  if echo "$CMD" | grep -qE "$pat"; then
+  # `--` terminates grep option parsing so patterns beginning with `--`
+  # (e.g. `--no-verify`) aren't misread as grep flags.
+  if echo "$CMD" | grep -qE -- "$pat"; then
     echo "pretool-guard: blocked by pattern '$pat' — command was: $CMD" >&2
     exit 2
   fi

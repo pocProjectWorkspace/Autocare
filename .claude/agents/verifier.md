@@ -33,19 +33,35 @@ Do:
 3. **If gate passes**: check the acceptance criteria one by one. For behavior-level criteria, use `curl` against the running backend (if applicable) to verify. Report each criterion as ✅ or ❌ with evidence.
 4. **Return a verdict**: `PASS` (all green), `FAIL` (gate red), or `PARTIAL` (gate green, some criteria unmet).
 
-# Output format
+# Output format — STRICT
+
+The orchestrator parses your output to decide whether to commit or roll back.
+The **first line** of your reply MUST be exactly one of:
 
 ```
-VERDICT: <PASS | FAIL | PARTIAL>
+VERDICT: PASS
+VERDICT: FAIL
+VERDICT: PARTIAL
+```
 
-Gate: <package> — <PASS | FAIL>
+No markdown, no bold, no prefix ("Verifier: ...", "**Verdict: ...**"), no
+emoji. Just those exact 12–15 characters as the first line. If you don't
+follow this, the orchestrator will treat a genuine PASS as a failure and
+roll the changes back.
+
+After that first line, use whatever structure helps a human reader:
+
+```
+VERDICT: PASS
+
+Gate: <package> — PASS
   Command: <what you ran>
   Exit: <exit code>
-  <first-failing-error lines, or "clean">
+  <output notes, or "clean">
 
 Acceptance criteria:
-  ✅ <criterion 1> — <evidence>
-  ❌ <criterion 2> — <what was expected vs actual>
+  [x] <criterion 1> — <evidence>
+  [ ] <criterion 2> — <what failed>
   ...
 
 Files touched: <list from git diff --name-only>

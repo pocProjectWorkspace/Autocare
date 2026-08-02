@@ -208,12 +208,16 @@ for i in "${!TASK_HEADINGS[@]}"; do
 
     VERIFY_PROMPT="Verify the changes for the $PACKAGE package against these acceptance criteria:\n\n$PLAN"
     if call_agent verifier "$VERIFY_PROMPT" "$VERIFIER_TOOLS" "task-$TASK_NUM/${TRY}-verify"; then
-      # Check if the verifier's output starts with 'VERDICT: PASS'
-      if grep -qE '^VERDICT: *PASS' "$LOG_DIR/task-$TASK_NUM/${TRY}-verify.log"; then
+      # Verifier subagents occasionally wrap the verdict in markdown bold or
+      # rename the label ("Verdict:", "Verifier verdict:"). Match liberally:
+      # a line containing PASS as a word, alongside a "verdict"/"verifier"
+      # keyword, and NOT containing FAIL/PARTIAL in the same line.
+      VERIFY_LOG="$LOG_DIR/task-$TASK_NUM/${TRY}-verify.log"
+      if grep -iE '(verdict|verifier)[^A-Za-z]*(:|=)?[^A-Za-z]*\**PASS\**' "$VERIFY_LOG" | grep -viE 'FAIL|PARTIAL' | head -1 | grep -q .; then
         TASK_PASSED="true"
         break
       fi
-      echo "!! verifier reports non-PASS — see $LOG_DIR/task-$TASK_NUM/${TRY}-verify.log"
+      echo "!! verifier reports non-PASS — see $VERIFY_LOG"
     fi
 
     echo "!! try $TRY failed — rolling back + retrying"
