@@ -27,6 +27,11 @@ let state = {
     jobsPageSize: 20,
     jobsTotal: 0,
     jobsFilter: 'all',
+    // Vehicles Pagination
+    vehiclesPage: 1,
+    vehiclesPageSize: 20,
+    vehiclesTotal: 0,
+    vehiclesPages: 1,
     // Reports
     reportPeriod: 'month',
     // Team
@@ -337,7 +342,7 @@ function loadPageData(page) {
             loadCustomers();
             break;
         case 'vehicles':
-            loadVehicles();
+            loadVehicles(1);
             break;
         case 'rfq':
             loadRFQs();
@@ -436,6 +441,17 @@ function updatePagination() {
     nextBtn.disabled = state.jobsPage >= totalPages;
 }
 
+function updateVehiclesPagination() {
+    const totalPages = Math.max(1, state.vehiclesPages || Math.ceil(state.vehiclesTotal / state.vehiclesPageSize));
+    const pageInfo = document.getElementById('vehicles-page-info');
+    if (pageInfo) pageInfo.textContent = `Page ${state.vehiclesPage} of ${totalPages}`;
+
+    const prevBtn = document.getElementById('vehicles-prev-page');
+    const nextBtn = document.getElementById('vehicles-next-page');
+    if (prevBtn) prevBtn.disabled = state.vehiclesPage <= 1;
+    if (nextBtn) nextBtn.disabled = state.vehiclesPage >= totalPages;
+}
+
 // =============================================
 // Data Loading — Customers
 // =============================================
@@ -457,14 +473,21 @@ async function loadCustomers() {
 // =============================================
 // Data Loading — Vehicles
 // =============================================
-async function loadVehicles() {
+async function loadVehicles(page) {
+    if (page !== undefined) {
+        state.vehiclesPage = page;
+    }
+
     const tbody = document.getElementById('vehicles-table');
     tbody.innerHTML = '<tr><td colspan="7" class="loading-cell">Loading...</td></tr>';
 
     try {
-        const data = await api.get('/admin/vehicles?page_size=50');
+        const data = await api.get(`/admin/vehicles?page=${state.vehiclesPage}&page_size=${state.vehiclesPageSize}`);
         if (data && data.vehicles) {
-            renderVehiclesTable(data.vehicles);
+            state.vehiclesTotal = data.total || 0;
+            state.vehiclesPages = data.pages || 1;
+            renderVehiclesTable(data.vehicles || []);
+            updateVehiclesPagination();
         }
     } catch (error) {
         tbody.innerHTML = '<tr><td colspan="7" class="loading-cell">Failed to load vehicles</td></tr>';
@@ -1724,6 +1747,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPages = Math.ceil(state.jobsTotal / state.jobsPageSize);
         if (state.jobsPage < totalPages) loadJobs(undefined, state.jobsPage + 1);
     });
+
+    // Vehicles Pagination
+    const vehiclesPrevBtn = document.getElementById('vehicles-prev-page');
+    const vehiclesNextBtn = document.getElementById('vehicles-next-page');
+    if (vehiclesPrevBtn) {
+        vehiclesPrevBtn.addEventListener('click', () => {
+            if (state.vehiclesPage > 1) loadVehicles(state.vehiclesPage - 1);
+        });
+    }
+    if (vehiclesNextBtn) {
+        vehiclesNextBtn.addEventListener('click', () => {
+            const totalPages = Math.max(1, state.vehiclesPages || Math.ceil(state.vehiclesTotal / state.vehiclesPageSize));
+            if (state.vehiclesPage < totalPages) loadVehicles(state.vehiclesPage + 1);
+        });
+    }
 
     // Reports period filter tabs
     document.querySelectorAll('#page-reports .filter-tab[data-period]').forEach(tab => {
