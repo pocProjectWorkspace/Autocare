@@ -2,7 +2,7 @@
  * Quote Submission Screen for Vendors
  */
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -110,9 +110,9 @@ export default function SubmitQuoteScreen() {
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
                 <View style={styles.header}>
-                    <Button variant="ghost" onPress={() => router.back()} style={styles.backBtn}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
                         <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
-                    </Button>
+                    </TouchableOpacity>
                     <Text style={styles.title}>Submit Quote</Text>
                 </View>
 
