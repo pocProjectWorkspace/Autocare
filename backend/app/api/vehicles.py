@@ -1,7 +1,7 @@
 """
 Vehicle Routes
 """
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from sqlalchemy.orm import Session
 from typing import List
 from uuid import UUID
@@ -17,12 +17,16 @@ router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
 @router.get("", response_model=VehicleListResponse)
 async def list_vehicles(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """List user's vehicles"""
-    vehicles = db.query(Vehicle).filter(Vehicle.owner_id == current_user.id).all()
-    return VehicleListResponse(vehicles=vehicles, total=len(vehicles))
+    query = db.query(Vehicle).filter(Vehicle.owner_id == current_user.id)
+    total = query.count()
+    vehicles = query.order_by(Vehicle.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    return VehicleListResponse(vehicles=vehicles, total=total, page=page, page_size=page_size)
 
 
 @router.post("", response_model=VehicleResponse, status_code=status.HTTP_201_CREATED)
