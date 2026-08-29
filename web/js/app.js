@@ -176,8 +176,8 @@ async function handleAuth(e) {
             document.querySelector('.otp-input').focus();
             btn.innerHTML = '<span>Verify & Login</span>';
 
-            if (data.otp) {
-                otpDisplay.textContent = `Dev Mode - OTP: ${data.otp}`;
+            if (data.dev_otp || data.otp) {
+                otpDisplay.textContent = `Dev Mode - OTP: ${data.dev_otp || data.otp}`;
                 otpDisplay.classList.remove('hidden');
             }
 
